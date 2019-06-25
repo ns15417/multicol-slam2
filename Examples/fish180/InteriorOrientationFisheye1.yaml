@@ -1,0 +1,46 @@
+%YAML:1.0
+
+# Camera Parameters. Adjust them!
+# Camera calibration parameters camera back
+Camera.Iw: 1280
+Camera.Ih: 720
+
+# hyperparameters   number of parameters needed for polynomial
+Camera.nrpol: 5
+Camera.nrinvpol: 14
+
+# forward polynomial f(\rho)
+Camera.a0: -3.214433e+02
+Camera.a1: 0.0 
+Camera.a2: 1.570819e-03
+Camera.a3: -2.293883e-06
+Camera.a4: 7.773234e-09 
+
+# backward polynomial rho(\theta)  
+# i think its the polynomial coefficients for the inverse mapping function
+Camera.pol0: 408.157972             
+Camera.pol1: 181.400773
+Camera.pol2: -14.935545
+Camera.pol3: 41.896141
+Camera.pol4: 4.168777
+Camera.pol5: 5.446626
+Camera.pol6: 5.033811
+Camera.pol7: -3.381734
+Camera.pol8:  7.257310
+Camera.pol9: 3.938380
+Camera.pol10: -5.093672
+Camera.pol11: -1.319829
+Camera.pol12: 1.855766 
+Camera.pol13: 0.662734
+
+
+# affine matrix
+Camera.c: 1.001352  
+Camera.d: 0.004962
+Camera.e: -0.002373
+
+# principal point
+Camera.u0: 642.475928
+Camera.v0: 363.279077 
+
+#calibration result by horizonal chessboard

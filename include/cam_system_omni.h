@@ -57,7 +57,11 @@ namespace MultiColSLAM
 		cMultiCamSys_() : nrCams(0), flagMcMt(false),
 			M_t(cv::Matx44d::eye()), M_t_min(cv::Matx61d::zeros()){}
 
-		// constructor initalizes MCS pose and MCS calibration
+		/* constructor initalizes MCS pose and MCS calibration
+		* 该函数用于计算后面可能用到的在不同形态的旋转矩阵R和平移矩阵T
+		* M_c_ 从输入的相机位姿文件中直接获取，cayley2hom为4x4矩阵
+		* M_t_ MCS的body frame坐标，当前函数使用的为4x4的单位阵
+		* 已经初始化好的每个相机的内参*/
 		cMultiCamSys_(cv::Matx<double, 4, 4> M_t_,
 			std::vector<cv::Matx<double, 4, 4>> M_c_,
 			std::vector<cCamModelGeneral_> camModels_) :
@@ -79,7 +83,8 @@ namespace MultiColSLAM
 				// opengv conversion
 				opengv::rotation_t R;
 				opengv::translation_t t;
-				cv::Mat Rcv(M_c[c].get_minor<3, 3>(0, 0));
+				cv::Mat Rcv(M_c[c].get_minor<3, 3>(0, 0)); //获得变换矩阵4x4的前三维旋转矩阵R
+				std::cout << "Got the Rotation Mat in cv format: " << Rcv << std::endl;
 				cv::cv2eigen(Rcv, R);
 				cv::Mat_<double> tcv =
 					(cv::Mat_<double>(3, 1) << M_c[c](0, 3), M_c[c](1, 3), M_c[c](2, 3));
@@ -187,8 +192,8 @@ namespace MultiColSLAM
 		std::vector<cv::Matx<double, 4, 4>> M_c;		// MCS calibration data
 		std::vector<cv::Matx<double, 6, 1>> M_c_min;    // MCS calibration data as cayley rep
 		// for opengv
-		opengv::rotations_t camRotations;
-		opengv::translations_t camOffsets;
+		opengv::rotations_t camRotations; //当前相机模型eigen模式下旋转向量
+		opengv::translations_t camOffsets;  //当前相机模型的平移
 
 		std::vector<cCamModelGeneral_> camModels; // specific camera model
 

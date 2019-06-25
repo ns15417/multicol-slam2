@@ -1,1 +1,1 @@
-multi_col_slam_boxNo2.exe E:/Project/MultiCol-SLAM/Examples/small_orb_omni_voc_9_6.yml  E:/Project/MultiCol-SLAM/Examples/BoxNO2/Slam_Settings_indoor1.yaml E:/Project/MultiCol-SLAM/Examples/BoxNO2/  E:/Project/MultiCol-SLAM/Examples/BoxNO2/
+multi_col_slam_boxNo2.exe E:/Project/MultiCol-SLAM/Examples/small_orb_omni_voc_9_6.yml  E:/Project/MultiCol-SLAM/Examples/BoxNO2/Slam_Settings_indoor1.yaml E:/Project/MultiCol-SLAM/Examples/BoxNO2/  E:/Project/MultiCol-SLAM/Examples/BoxNO2/ 

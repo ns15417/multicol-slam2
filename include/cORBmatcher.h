@@ -54,6 +54,11 @@ namespace MultiColSLAM
 	class cORBmatcher
 	{
 	public:
+		/* SHINAN:
+		* nnratio: ratio of the best and the second score
+		* featDim： feature dimension, past throught setting doc extractor.descSize, DEFAULT=32
+		* havingMasks_: add mask for fisheye lense
+		*/
 
 		cORBmatcher(double nnratio = 0.6,
 			bool checkOri = true,
@@ -104,6 +109,13 @@ namespace MultiColSLAM
 			int windowSize, std::vector<cMapPoint *> &vpMapPointMatches2);
 
 		// Matching for the Map Initialization
+		/*SHINAN:
+		* F1: reference frame
+		* F2: current frame
+		* vbPrevMatched: 用于保存当前两帧图像match到的点的坐标
+		* vnMatches12： 用于保存当前两帧图下个match到的点的index,如果match到就是在total keypoint中的index，如果没有match到就是-1
+		* windowSize： 查找匹配点时的窗口大小	
+		*/
 		int SearchForInitialization(cMultiFrame &F1, cMultiFrame &F2,
 			std::vector<cv::Vec2d> &vbPrevMatched,
 			std::vector<int> &vnMatches12, int windowSize = 10);

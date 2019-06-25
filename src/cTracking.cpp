@@ -212,20 +212,13 @@ cv::Matx44d cTracking::GrabImageSet(const std::vector<cv::Mat>& imgSet,
 	convertedImages = imgSet;
 
 	if (mState == WORKING || mState == LOST)
-	{
-		std::cout << "mState = " << mState << std::endl;
 		mCurrentFrame = cMultiFrame(convertedImages,
-			timestamp, mp_mdBRIEF_extractorOct, mpORBVocabulary,
-			camSystem, imgCounter - 1);
-	}
-		
-	else {
-		std::cout << "mState = " << mState << std::endl;
+		timestamp, mp_mdBRIEF_extractorOct, mpORBVocabulary, 
+		camSystem, imgCounter - 1);
+	else
 		mCurrentFrame = cMultiFrame(convertedImages,
-			timestamp, mp_mdBRIEF_init_extractorOct, mpORBVocabulary,
-			camSystem, imgCounter - 1);
-	}
-		
+		timestamp, mp_mdBRIEF_init_extractorOct, mpORBVocabulary, 
+		camSystem, imgCounter - 1);
 
 	if (!loopAndMapperSet)
 	{
@@ -273,14 +266,21 @@ bool cTracking::Track()
         // Initial Camera Pose Estimation from Previous Frame (Motion Model or Coarse) or Relocalisation
         if (mState == WORKING && !RelocalisationRequested())
         {
+			//mbMotionModel wont change once Initilized
 			if (!mbMotionModel || 
 				 mpMap->KeyFramesInMap() < 2  ||
 				 mCurrentFrame.mnId < mnLastRelocFrameId + 2)
 			{
+				std::cout << "Tracking with Previous frame Because " << std::endl;
+				if (!mbMotionModel) std::cout << "!mbMotionModel" << std::endl;
+				if (mpMap->KeyFramesInMap() < 2) std::cout << " mpMap->KeyFramesInMap() is " << mpMap->KeyFramesInMap() << std::endl;
+				if (mCurrentFrame.mnId < mnLastRelocFrameId + 2) 
+					std::cout << "mCurrentFrame.mnId < mnLastRelocFrameId + 2, current is  " << mCurrentFrame.mnId << " Relocal is " << mnLastRelocFrameId << std::endl;
 				bOK = TrackPreviousFrame();
 			}
             else
             {
+				std::cout << "Tracking with Motion Model " << std::endl;
 				bOK = TrackWithMotionModel();
 				if (!bOK)
 					bOK = TrackPreviousFrame();			
@@ -815,7 +815,7 @@ bool cTracking::TrackWithMotionModel()
     // Project points seen in previous frame
 	int nmatches = matcher.SearchByProjection(mCurrentFrame, mLastFrame, 50);
 	end = std::chrono::steady_clock::now();
-
+	std::cout << "Inside TrackWithMotionModel(), got " << nmatches << "matches from Projection" << std::endl;
     if (nmatches < 10)
        return false;
 
@@ -828,13 +828,13 @@ bool cTracking::TrackWithMotionModel()
         {
             if (mCurrentFrame.mvbOutlier[i])
             {
-
                 mCurrentFrame.mvpMapPoints[i] = NULL;
                 mCurrentFrame.mvbOutlier[i] = false;
 				--nmatches;
             }
         }
     }
+	std::cout << "Inside TrackWithMotionModel(), After discarding still got " << nmatches << "matches" << std::endl;
     return nmatches >= 6;
 }
 

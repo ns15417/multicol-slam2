@@ -105,7 +105,7 @@ namespace MultiColSLAM
 		imgCnt(_imgCnt)
 	{
 		HResClk::time_point begin = HResClk::now();
-		std::cout << "inside cMultiFrame initialization: images size: " << images.size() << std::endl;
+
 		int nrCams = camSystem.GetNrCams();
 		mDescriptors.resize(nrCams);
 		mDescriptorMasks.resize(nrCams);
@@ -125,7 +125,7 @@ namespace MultiColSLAM
 		std::vector<std::vector<cv::Vec3d>> keyRaysTemp(nrCams);
 		int laufIdx = 0;
 
-#pragma omp parallel for num_threads(nrCams)
+//#pragma omp parallel for num_threads(nrCams)
 		for (int c = 0; c < nrCams; ++c)
 		{
 			cCamModelGeneral_ camModel = camSystem.GetCamModelObj(c);

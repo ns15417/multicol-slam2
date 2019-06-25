@@ -1,0 +1,2 @@
+  E:\Project\MultiCol-SLAM\Examples\Lafida\Release>
+  multi_col_slam_lafida.exe E:/Project/MultiCol-SLAM/Examples/small_orb_omni_voc_9_6.yml   E:/Project/MultiCol-SLAM/Examples/Lafida/Slam_Settings_indoor1.yaml  E:/Project/MultiCol-SLAM/Examples/Lafida/  E:/Project/MultiCol-SLAM/Examples/indoor_dynamic/indoor_dynamic

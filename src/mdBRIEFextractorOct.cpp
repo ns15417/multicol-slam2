@@ -900,7 +900,7 @@ void mdBRIEFextractorOct::ComputeKeyPointsOctTree(
 				maxY = maxBorderY;
 
 			for (int j = 0; j<nCols; j++)
-			{//在邻域直径是7的BressenHam圆中计算FAST角点
+			{
 				const double iniX = minBorderX + j*wCell;
 				double maxX = iniX + wCell + 6;
 				if (iniX >= maxBorderX - 6)

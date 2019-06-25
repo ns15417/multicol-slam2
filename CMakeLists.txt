@@ -172,6 +172,7 @@ SET (OPENGVLIBS ${PROJECT_SOURCE_DIR}/ThirdParty/OpenGV/build/lib/librandom_gene
 ENDIF()
 
 IF(WIN32)
+message("optimized value: " optimized)
 target_link_libraries(${PROJECT_NAME}
 ${OpenCV_LIBS}
 ${Pangolin_LIBRARIES}
@@ -202,3 +203,7 @@ target_link_libraries(multi_col_slam_lafida ${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/BoxNO2)
 add_executable(multi_col_slam_boxNo2 Examples/BoxNO2/mult_col_slam_boxNo2.cpp)
 target_link_libraries(multi_col_slam_boxNo2 ${PROJECT_NAME})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/ReCalilbration)
+add_executable(calibration_test Examples/ReCalilbration/calibration_test.cpp)
+target_link_libraries(calibration_test ${PROJECT_NAME})

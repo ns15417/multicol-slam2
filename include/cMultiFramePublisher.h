@@ -63,7 +63,9 @@ namespace MultiColSLAM
 
 		std::vector<bool> mvbOutliers;
 		std::unordered_map<size_t, int> keyp_to_cam;
-		std::vector<cMapPoint*> mvpMatchedMapPoints;
+		//  matched points will be checked , updated in function cMultiFramePublisher::Update(cTracking *pTracker).
+		// got values from pTracker->mCurrentFrame.mvpMapPoints;
+		std::vector<cMapPoint*> mvpMatchedMapPoints;      
 		int mnTracked;
 		std::vector<cv::KeyPoint> mvIniKeys;
 		std::vector<int> mvIniMatches;

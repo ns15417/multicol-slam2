@@ -67,6 +67,7 @@ namespace MultiColSLAM
 	{
 
 	public:
+		// 利用setting文件进行tracking所需要的变量设置，包括ORB特征的提取方式等
 		cTracking(cSystem* pSys,
 			ORBVocabulary* pVoc,
 			cMultiFramePublisher *pFramePublisher,
@@ -99,13 +100,13 @@ namespace MultiColSLAM
 		eTrackingState mState;
 		eTrackingState mLastProcessedState;
 
-		// Current Frame
+		// Current Multi Framess
 		cMultiFrame mCurrentFrame;
 
 		// Initialization Variables
 		std::vector<int> mvIniLastMatches;
 		std::vector<int> mvIniMatches;
-		std::vector<cv::Vec2d> mvbPrevMatched;
+		std::vector<cv::Vec2d> mvbPrevMatched; //将mvKeys中的特征点坐标保存
 		std::vector<cv::Vec3d> mvIniP3D;
 		cMultiFrame mInitialFrame;
 
@@ -137,9 +138,15 @@ namespace MultiColSLAM
 		cv::Matx44d initPose;
 		double curBaseline2MKF;
 		bool Track();
-
-		void FirstInitialization();
+        //初始化一些变量，并将检测到的所有特征点保存至mvbPrevMatched，定义mInitialFrame，mvIniMatches初始化为-1
+		void FirstInitialization();  
 		void Initialize();
+		
+		/**
+		* @brief CreateInitialMap()使用leading cam ，三角化生成MapPoint
+		*
+		* 
+		*/
 		void CreateInitialMap(cv::Matx33d &Rcw,
 			cv::Vec3d &tcw, int leadingCam);
 

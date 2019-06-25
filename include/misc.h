@@ -104,7 +104,7 @@ namespace MultiColSLAM
 	}
 
 	/**
-	* evaluate a polynom using Horner
+	* evaluate a polynom using Horner 凳膘f(老)=a0+a1*老+a2*老*p+a3*老*老*老+a4*老*老*老*老
 	*
 	* @param coeffs  T* of coefficients
 	* @param s		 number of polynomial coefficients

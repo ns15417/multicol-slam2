@@ -89,7 +89,6 @@ int main(int argc, char **argv)
 	// --------------
 	vector<vector<string>> imgFilenames;
 	vector<double> timestamps;
-	/////////////////////////
 	LoadImagesAndTimestamps(startFrame, endFrame, path2imgs, imgFilenames, timestamps);
 
 	int nImages = imgFilenames[0].size();
@@ -113,7 +112,6 @@ int main(int argc, char **argv)
 		std::vector<bool> loaded(nrCams);
 		for (int c = 0; c < nrCams; ++c)
 		{
-			std::cout << "loading image :" << imgFilenames[c][ni] << std::endl;
 			imgs[c] = cv::imread(imgFilenames[c][ni], CV_LOAD_IMAGE_GRAYSCALE);
 			if (imgs[c].empty())
 			{

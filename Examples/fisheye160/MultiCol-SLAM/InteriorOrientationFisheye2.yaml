@@ -1,0 +1,36 @@
+%YAML:1.0
+
+# Camera Parameters. Adjust them!
+# Camera calibration parameters cam right
+Camera.Iw: 1280
+Camera.Ih: 720
+
+Camera.nrpol: 5
+Camera.nrinvpol: 8
+
+Camera.a0: -589.390658877787
+Camera.a1: 0.000000e+00
+Camera.a2: 0.000727656584306874
+Camera.a3: -2.00733305207637e-07
+Camera.a4: 7.22488274919257e-10
+
+Camera.pol0: 767.941759120057
+Camera.pol1: 371.979363830270	
+Camera.pol2: 3.45942369972203
+Camera.pol3: 136.518351234193
+Camera.pol4: 177.599160533799
+Camera.pol5: 274.099456631201
+Camera.pol6: 252.914862324791
+Camera.pol7: 109.907191841773
+Camera.pol8: 18.1066966749982
+
+
+Camera.c: 1.00139259560879
+Camera.d: -0.00150395439651266
+Camera.e: -0.00128988512238419
+    
+Camera.u0: 673.850921871903
+Camera.v0: 350.427755523687
+
+# create a mirror mask for fisheye cameras
+Camera.mirrorMask: 1

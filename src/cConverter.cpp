@@ -30,7 +30,7 @@ namespace MultiColSLAM
 {
 	cv::Matx44d cConverter::invMat(const cv::Matx44d& M)
 	{
-		cv::Matx33d R = M.get_minor<3, 3>(0, 0);
+		cv::Matx33d R = M.get_minor<3, 3>(0, 0);//get 3x3 mat from (0,0)
 		R = R.t();
 		cv::Vec3d t(M(0, 3), M(1, 3), M(2, 3));
 		t = -R * t;

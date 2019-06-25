@@ -86,9 +86,8 @@ namespace MultiColSLAM
 
 		// Vector of keypoints 2d
 		// and corresponding bearing vectors 3d
-		// for each camera
-		std::vector<cv::KeyPoint> mvKeys;
-		std::vector<cv::Vec3d>    mvKeysRays; // 3D observation rays
+		std::vector<cv::KeyPoint> mvKeys;  //用于保存所有的特征点像素坐标
+		std::vector<cv::Vec3d>    mvKeysRays; // 3D observation rays 保存所有特征点ImgToWorld计算后的世界坐标
 
 		// Bag of Words Vector structures
 		DBoW2::BowVector mBowVec;
@@ -102,6 +101,7 @@ namespace MultiColSLAM
 		std::vector<cv::Mat> mDescriptorMasks;
 
 		// MapPoints associated to keypoints, NULL pointer if not association
+		// 检测到的关键点与地图点之间的对应关系，如果是空指针，则说明并没有在地图上找到，因此在Viewer中将不会被显示出来
 		std::vector<cMapPoint*> mvpMapPoints;
 
 		// Flag to identify outlier associations
@@ -109,10 +109,10 @@ namespace MultiColSLAM
 
 		// Keypoints are assigned to cells in a grid 
 		// to reduce matching complexity when projecting MapPoints
-		std::vector<double> mfGridElementWidthInv;
+		std::vector<double> mfGridElementWidthInv;  //如果为640*480的图像， 两者都为1/10
 		std::vector<double> mfGridElementHeightInv;
 		// a grid for each camera, thus 3 vectors
-		std::vector<std::vector<std::vector<std::vector<std::size_t> > > > mGrids;
+		std::vector<std::vector<std::vector<std::vector<std::size_t> > > > mGrids;  //保存的是各个相机对应的特征点的ID(total kp中)
 
 		// Current and Next multi frame id
 		static long unsigned int nNextId;
@@ -131,6 +131,7 @@ namespace MultiColSLAM
 		// Compute the cell of a keypoint (return false if outside the grid)
 		bool PosInGrid(const int& cam, cv::KeyPoint &kp, int &posX, int &posY);
 
+		//以当前点x,y为中心，以r为window size， 在mGrids中寻找，并将找到的对应点返回
 		std::vector<size_t> GetFeaturesInArea(const int& cam,
 			const double &x, const double  &y,
 			const double  &r,
@@ -139,8 +140,8 @@ namespace MultiColSLAM
 		// Scale Pyramid Info
 		int mnScaleLevels;
 		double mfScaleFactor;
-		std::vector<double> mvScaleFactors;
-		std::vector<double> mvLevelSigma2;
+		std::vector<double> mvScaleFactors; //每一层金字塔图像的放大倍数
+		std::vector<double> mvLevelSigma2;  // 当前scale_factor * scale_factor
 		std::vector<double> mvInvLevelSigma2;
 
 		// Undistorted Image Bounds (computed once)
@@ -153,12 +154,12 @@ namespace MultiColSLAM
 
 		// this variable holds the mapping between keypoint ID and camera
 		// it was observed in
-		// [key_id : cam_id]
+		// [key_id : cam_id]   保存特征点ID 与 其所属相机之间的对应关系
 		std::unordered_map<size_t, int> keypoint_to_cam;
 		// this variable holds the mapping between the continous indexing of all
 		// descriptors and keypoints and the image wise indexes
 		// it was observed in
-		// [cont_id : local_image_id]
+		// [cont_id : local_image_id]  特征点在mvKeys中的ID 与其在原图像keyPtsTemp[i] 中的ID之间的对应关系
 		std::unordered_map<size_t, int> cont_idx_to_local_cam_idx;
 
 		cv::Matx<double, 4, 4> GetPose() { return camSystem.Get_M_t(); }

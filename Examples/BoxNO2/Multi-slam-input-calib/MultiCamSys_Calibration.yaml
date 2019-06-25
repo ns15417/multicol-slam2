@@ -1,0 +1,42 @@
+%YAML:1.0
+
+# Multi-camera calibration matrices (M_c)
+# rotation elements are in cayley parametrization
+CameraSystem.nrCams: 2                    
+# camera back
+CameraSystem.cam1_1: -0.0  #r1
+CameraSystem.cam1_2:  0.0     #r2
+CameraSystem.cam1_3: -0.0     #r3
+CameraSystem.cam1_4:  0.0    #t1
+CameraSystem.cam1_5:  0.0    #t2
+CameraSystem.cam1_6: -0.0   #t3
+# camera right   
+CameraSystem.cam2_1: 0.01473117440183353
+CameraSystem.cam2_2: 0.009155381172290714
+CameraSystem.cam2_3: 0.02978751016572709
+CameraSystem.cam2_4: -0.0544484
+CameraSystem.cam2_5: -0.008787720000000001
+CameraSystem.cam2_6: 1.44874e-05
+
+#pose data camera2
+#0.99806 -0.0592349 0.0191656 -0.0544484
+#0.0597737 0.997794 -0.0288826 -0.00878772
+#-0.0174124 0.0299722 0.999399 1.44874e-05
+
+ 
+#CameraSystem.cam2_1: 0.06887552765741788   #r1
+#CameraSystem.cam2_2: -0.1181886568487436      #r2
+#CameraSystem.cam2_3: -0.0192816140181071    #r3
+#CameraSystem.cam2_4: 0.101694     #t1
+#CameraSystem.cam2_5:  0.191133    #t2
+#CameraSystem.cam2_6: 0.0592288    #t3
+
+#VideoSourceMulti: Saved pose of camera1
+#1 0 0 -0
+#0 1 0 -0
+#0 0 1 -0
+
+#VideoSourceMulti: Saved pose of camera2  sent by patrick  
+#0.971856 0.0218653 -0.234557 0.101694
+#-0.0538169 0.98996 -0.130699 0.191133
+#0.229345 0.139644 0.963276 0.0592288
