@@ -138,6 +138,7 @@ namespace MultiColSLAM
 		cv::Matx44d initPose;
 		double curBaseline2MKF;
 		bool Track();
+		int relocalization_times;/////////////////////shinan
         //初始化一些变量，并将检测到的所有特征点保存至mvbPrevMatched，定义mInitialFrame，mvIniMatches初始化为-1
 		void FirstInitialization();  
 		void Initialize();
@@ -160,6 +161,10 @@ namespace MultiColSLAM
 		void UpdateReferencePoints();
 		void UpdateReferenceKeyFrames();
 
+		/*SHINAN:
+		* @brief:  track map points in LocalMap
+		* @return: true if tracking is successful
+		*/
 		bool TrackLocalMap();
 		int SearchReferencePointsInFrustum();
 
