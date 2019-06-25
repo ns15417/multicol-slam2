@@ -5,3 +5,8 @@ SI
 src_*
 Examples_*
 *.pdf
+Examples/**/*.exe
+Examples/**/*.pdb
+Examples/BoxNO2/Release/*.exe
+Examples/BoxNO2/Release/*.pdb
+result*.txt

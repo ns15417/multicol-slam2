@@ -105,6 +105,10 @@ namespace MultiColSLAM
 			int minOctave = -1, int maxOctave = INT_MAX);
 
 		// Refined matching when we have a guess of Frame 2 pose
+		/*
+		* 1. for all the mappoints in F1, count their projection location in F2
+		* 2. in F2, search features in window_size area and count their descripter distance
+		*/
 		int SearchByProjection(cMultiFrame &F1, cMultiFrame &F2,
 			int windowSize, std::vector<cMapPoint *> &vpMapPointMatches2);
 
