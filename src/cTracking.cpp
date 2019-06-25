@@ -237,6 +237,7 @@ cv::Matx44d cTracking::GrabImageSet(const std::vector<cv::Mat>& imgSet,
 bool cTracking::Track()
 {
     // Depending on the state of the Tracker we perform different tasks
+	std::cout << "---------------mState = " << mState <<" --------------------"<< std::endl;
     if (mState == NO_IMAGES_YET)
         mState = NOT_INITIALIZED;
 
@@ -244,10 +245,12 @@ bool cTracking::Track()
 
     if (mState == NOT_INITIALIZED)
     {
+		//relocalization_times = 0;
         FirstInitialization();
     }
     else if (mState == INITIALIZING)
     {
+		//relocalization_times = 0;
         Initialize();
     }
     else
@@ -266,6 +269,7 @@ bool cTracking::Track()
         // Initial Camera Pose Estimation from Previous Frame (Motion Model or Coarse) or Relocalisation
         if (mState == WORKING && !RelocalisationRequested())
         {
+			//relocalization_times = 0;
 			//mbMotionModel wont change once Initilized
 			if (!mbMotionModel || 
 				 mpMap->KeyFramesInMap() < 2  ||
@@ -289,7 +293,9 @@ bool cTracking::Track()
         else
         {
             bOK = Relocalisation();
+			//relocalization_times ++;
         }
+
 		// If we have an initial estimation of the camera pose and matching. Track the local map.
 		if (bOK)
 		{
@@ -328,6 +334,8 @@ bool cTracking::Track()
                 Reset();
                 return true;
             }
+			//if (relocalization_times > 30)
+				//mState = NOT_INITIALIZED;
         }
 
         // Update motion model
@@ -730,6 +738,7 @@ void cTracking::CreateInitialMap(cv::Matx33d &Rcw, cv::Vec3d &tcw, int leadingCa
 
 bool cTracking::TrackPreviousFrame()
 {
+	std::cout << "Tracking with Previous frame Because " << std::endl;
 	cORBmatcher matcher(0.8, checkOrientation, 
 		mCurrentFrame.DescDims(), mCurrentFrame.HavingMasks());
     vector<cMapPoint*> vpMapPointMatches;
@@ -742,7 +751,7 @@ bool cTracking::TrackPreviousFrame()
 	cv::Matx44d pose = mLastFrame.GetPose();
 	mCurrentFrame.SetPose(pose);
     int nmatches = matcher.WindowSearch(mLastFrame, mCurrentFrame,
-		60, vpMapPointMatches, minOctave);
+		100, vpMapPointMatches, minOctave); ///////////SHINAN: change original windown size 60 to 100
 
     // If not enough matches, search again without scale constraint
     if (nmatches < 10)
@@ -758,7 +767,7 @@ bool cTracking::TrackPreviousFrame()
 	mCurrentFrame.mvpMapPoints = vpMapPointMatches;
 	double inliers = 0.0;
 	cOptimizer::PoseOptimization(&mCurrentFrame, inliers);
-
+	std::cout << "After a rough initial estimate by WindowSearch(), we got " << nmatches << "matches" << std::endl;
 	// Discard outliers
 	for (size_t i = 0; i < mCurrentFrame.mvbOutlier.size(); ++i)
 	{
@@ -791,6 +800,7 @@ bool cTracking::TrackPreviousFrame()
 			--nmatches;
 		}
 	}
+	std::cout << "After a precise search by SearchByProjection(), we got " << nmatches << "matches" <<std::endl;
     return nmatches >= 6;
 }
 
@@ -804,7 +814,7 @@ bool cTracking::TrackWithMotionModel()
 
     // Compute current pose by motion model	
 	//mCurrentFrame.SetPose(mVelocity*mLastFrame.GetPose());
-	cv::Matx44d pose = mLastFrame.GetPose()*mVelocity;
+	cv::Matx44d pose = mLastFrame.GetPose()*mVelocity;// M(t-2)*mVelocity=M(t-1) M(t)=M(t-1)*mVelocity = M(t-1)*inv(M(t-2))*M(t-1)
 	mCurrentFrame.SetPose(pose);
 	//mCurrentFrame.SetPose(mLastFrame.GetPose()*mVelocity);
 
@@ -813,7 +823,7 @@ bool cTracking::TrackWithMotionModel()
 
 	begin = std::chrono::steady_clock::now();
     // Project points seen in previous frame
-	int nmatches = matcher.SearchByProjection(mCurrentFrame, mLastFrame, 50);
+	int nmatches = matcher.SearchByProjection(mCurrentFrame, mLastFrame, 100);
 	end = std::chrono::steady_clock::now();
 	std::cout << "Inside TrackWithMotionModel(), got " << nmatches << "matches from Projection" << std::endl;
     if (nmatches < 10)
@@ -843,13 +853,13 @@ bool cTracking::TrackLocalMap()
     // Tracking from previous frame or relocalisation was succesfull and we have an estimation
     // of the camera pose and some map points tracked in the frame.
     // Update Local Map and Track
-
+	std::cout << "TrackLocalMap()" << std::endl;
     // Update Local Map
     UpdateReference();
 
     // Search Local MapPoints
 	int nrPoints = SearchReferencePointsInFrustum();
-
+	int beforepoints = nrPoints; //shinan: added for cout
     // Optimize Pose
 	double inliers = 0.0;
 	mnMatchesInliers = cOptimizer::PoseOptimization(&mCurrentFrame, inliers);
@@ -875,7 +885,7 @@ bool cTracking::TrackLocalMap()
 	}
 	curBaseline2MKF = cv::norm(cConverter::Hom2T(mCurrentFrame.GetPose()) -
 		cConverter::Hom2T(mpReferenceKF->GetPose()));
-
+	std::cout << "before optimaization got  " << beforepoints << " points and after optimizing only got "<< nrPoints<<" Points";
     // Decide if the tracking was succesful
     // More restrictive if there was a relocalization recently
 	if (mCurrentFrame.mnId < mnLastRelocFrameId + mMaxFrames && mnMatchesInliers < 15)
@@ -959,6 +969,7 @@ void cTracking::CreateNewKeyFrame()
 
 int cTracking::SearchReferencePointsInFrustum()
 {
+	std::cout << "Inside SearchReferencePointsInFrustum()" << std::endl;
     // Do not search map points already matched
 	int nrMatches = 0;
 	for (int i = 0; i < mCurrentFrame.mvpMapPoints.size(); ++i)
@@ -981,10 +992,11 @@ int cTracking::SearchReferencePointsInFrustum()
             }
         }
     }
-
+	std::cout << "Before recheck, got " << nrMatches << " good matches in mCurrentFrame.mvpMapPoints()" << std::endl;
     int nToMatch=0;
 
     // Project points in frame and check its visibility
+	//SHINAN: project points in localmap into each camera to check if they exist
     for(vector<cMapPoint*>::iterator vit=mvpLocalMapPoints.begin(), vend=mvpLocalMapPoints.end();
 		vit != vend; ++vit)
     {
@@ -1014,7 +1026,7 @@ int cTracking::SearchReferencePointsInFrustum()
             th = 3;
         nrMatches += matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th);
     }
-
+	std::cout << "After Rechecking, got " << nrMatches << " nrMatches in currentFrame" << std::endl;
 	return nrMatches;
 }
 
@@ -1131,6 +1143,7 @@ void cTracking::UpdateReferenceKeyFrames()
 
 bool cTracking::Relocalisation()
 {
+	std::cout << "Inside Relocalisation(): " << std::endl;
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
 
