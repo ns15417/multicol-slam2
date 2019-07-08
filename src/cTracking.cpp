@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include <opencv2/opencv.hpp>
@@ -237,7 +237,7 @@ cv::Matx44d cTracking::GrabImageSet(const std::vector<cv::Mat>& imgSet,
 bool cTracking::Track()
 {
     // Depending on the state of the Tracker we perform different tasks
-	std::cout << "---------------mState = " << mState <<" --------------------"<< std::endl;
+	std::cout << "-----------------mState = " << mState <<" --------------------"<< std::endl;
     if (mState == NO_IMAGES_YET)
         mState = NOT_INITIALIZED;
 
@@ -447,7 +447,10 @@ void cTracking::Initialize()
         }
 
 		CreateInitialMap(Rcw, tcw, leadingCam);
-    }
+	}
+	else {
+		std::cout << " Initialize() Failed ! " << std::endl;
+	}
 
 }
 
@@ -482,21 +485,21 @@ void cTracking::CreateInitialMap(cv::Matx33d &Rcw, cv::Vec3d &tcw, int leadingCa
         if (mvIniMatches[i] < 0)
             continue;
 
-        //Create MapPoint.
+        //Create MapPoint.将该3D点包装成mapPoint
         cv::Vec3d worldPos(mvIniP3D[i]);
 
         cMapPoint* pMP = new cMapPoint(worldPos,pKFcur,mpMap);
-		// assign mappoint to keyframes
+		// assign mappoint to keyframes，表示该keyframe的哪个特征点可以观测到该3D点
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
-		// add observation to mappoints
+		// add observation to mappoints 表示该MapPoint可以被哪个KeyFrame的哪个特征点观测到
         pMP->AddObservation(pKFini,i);
-        pMP->AddObservation(pKFcur,mvIniMatches[i]);
+        pMP->AddObservation(pKFcur,mvIniMatches[i]); //mvIniMatches保存匹配点 [index in frame1, index in frame2]
 		// compute some statistics about the mappoint
 		pMP->ComputeDistinctiveDescriptors(pKFcur->HavingMasks());
 		cv::Mat desc = pMP->GetDescriptor();
 		pMP->UpdateCurrentDescriptor(desc);
-
+		//更新该mappoint的平均观测方向和距离
         pMP->UpdateNormalAndDepth();
 
         //Fill Current Frame structure
@@ -507,7 +510,7 @@ void cTracking::CreateInitialMap(cv::Matx33d &Rcw, cv::Vec3d &tcw, int leadingCa
 
     }
 
-    // Update Connections
+    // Update Connections 更新关键帧之间的联系，在3D 点和关键帧之间建立边，每个边有一个权重，边的权重是该关键帧和当前帧公共3D点的个数
     pKFini->UpdateConnections();
     pKFcur->UpdateConnections();
 
@@ -519,7 +522,7 @@ void cTracking::CreateInitialMap(cv::Matx33d &Rcw, cv::Vec3d &tcw, int leadingCa
 
 	vector<cMapPoint*> vpAllMapPoints1 = pKFini->GetMapPointMatches();
 	vector<cMapPoint*> vpAllMapPoints2 = pKFcur->GetMapPointMatches();
-
+	// 全局BA优化，优化pMap中所有的MapPoints和关键帧
 	cOptimizer::GlobalBundleAdjustment(mpMap, true);
 
 	cORBmatcher tempMatcher(0.8, checkOrientation, 
@@ -829,7 +832,7 @@ bool cTracking::TrackWithMotionModel()
     if (nmatches < 10)
        return false;
 
-	double inliers= 0.0;
+	double inliers= 0.0;// inliers is only a ratio which equals to bad non-null mappoint / all non-null mappoint
     cOptimizer::PoseOptimization(&mCurrentFrame, inliers);
     // Discard outliers
 	for (size_t i = 0; i < mCurrentFrame.mvpMapPoints.size(); ++i)
@@ -848,19 +851,33 @@ bool cTracking::TrackWithMotionModel()
     return nmatches >= 6;
 }
 
+/*
+* @brief: 对LocalMap中所有关键帧包含的地图点进行筛选
+          Tracking from previous frame or relocalisation was succesfull and we have an estimation
+          of the camera pose and some map points tracked in the frame.
+*         1. 将每个地图点在当前frame中进行投影，若像素位置超过图像边界则discard
+*         2. 计算current viewing ray 与 该mappoint的mean viewing ray夹角，超过60度则discard
+*         3. 计算从mappoint到相机中心的距离d，若超过scale iinvarience regien则discard
+*         4. 计算scale in the frame d/dmin
+*         5. 计算该地图点的描述子 与 未匹配地图点的ORBfeture 进行匹配，计算出bestmatch分配给该地图点
+*         用当前帧中的所有地图点对currentframe做位姿优化
+* @note: LocalMap定义：为了减少计算量，LocalMap只有两部分构成，K1(包括所有与当前帧有共同地图点的关键帧) 和
+*        K2(在covisibility graph中与K1中关键帧相连的关键帧)
+*/
 bool cTracking::TrackLocalMap()
 {
-    // Tracking from previous frame or relocalisation was succesfull and we have an estimation
-    // of the camera pose and some map points tracked in the frame.
+
     // Update Local Map and Track
 	std::cout << "TrackLocalMap()" << std::endl;
-    // Update Local Map
+    // 1. Update Local Map
+	//    1. 先找到所有跟currentFrame相关联的关键帧保存至mvpLocalKeyFrames
+	//    2. 找到所有mvpLocalKeyFrames中对应的有效地图点mvpLocalMapPoints
     UpdateReference();
 
-    // Search Local MapPoints
+    // 2. Search Local MapPoints
 	int nrPoints = SearchReferencePointsInFrustum();
 	int beforepoints = nrPoints; //shinan: added for cout
-    // Optimize Pose
+    // 3. Optimize Pose 用所有的Mapoint对currentframe的位姿进行优化
 	double inliers = 0.0;
 	mnMatchesInliers = cOptimizer::PoseOptimization(&mCurrentFrame, inliers);
 
@@ -967,6 +984,11 @@ void cTracking::CreateNewKeyFrame()
     mpLastKeyFrame = pKF;
 }
 
+/*
+* @brief: ORB2015论文中关于TRACKLOCALMAP部分的实现，将localmap中的地图点进行筛选，
+*         看其是否属于currentframe，并将一些地图点分配给没有对应点的keypoint
+* @return: 符合条件的mappoint的个数
+*/
 int cTracking::SearchReferencePointsInFrustum()
 {
 	std::cout << "Inside SearchReferencePointsInFrustum()" << std::endl;
@@ -1024,7 +1046,7 @@ int cTracking::SearchReferencePointsInFrustum()
         // If the camera has been relocalised recently, perform a coarser search
         if (mCurrentFrame.mnId < mnLastRelocFrameId+2)
             th = 3;
-        nrMatches += matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th);
+        nrMatches += matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th);//又将一些地图点分配给当前帧，因此会增加一些匹配数量
     }
 	std::cout << "After Rechecking, got " << nrMatches << " nrMatches in currentFrame" << std::endl;
 	return nrMatches;
@@ -1035,11 +1057,14 @@ void cTracking::UpdateReference()
     // This is for visualization
     mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
 
-    // Update
+    // Update 
     UpdateReferenceKeyFrames();
     UpdateReferencePoints();
 }
 
+/*
+* @brief: 计算LocalMap中的keyframe，mvpLocalKeyFrames中包含的有效地图点存入mvpLocalMapPoints
+*/
 void cTracking::UpdateReferencePoints()
 {
     mvpLocalMapPoints.clear();
@@ -1067,19 +1092,23 @@ void cTracking::UpdateReferencePoints()
     }
 }
 
+/*
+* @brief： 计算与当前帧currentFrame相关的所有KryFrame -->mvpLocalKeyFrames
+*/
 void cTracking::UpdateReferenceKeyFrames()
 {
     // Each map point vote for the keyframes in which it has been observed
 	// each map point that was found in the the current frame
+	//[keyframes which have common mappoint with currentframe, number of mappoints]
 	map<cMultiKeyFrame*, int> keyframeCounter;
 	for (size_t i = 0, iend = mCurrentFrame.mvpMapPoints.size(); i<iend; ++i)
     {
         if (mCurrentFrame.mvpMapPoints[i])
         {
-            cMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
+            cMapPoint* pMP = mCurrentFrame.mvpMapPoints[i]; //mappoint in current frame
             if (!pMP->isBad())
-            {
-				map<cMultiKeyFrame*, std::vector<size_t>> observations = pMP->GetObservations();
+            {   //[keyframes which can see this mappoint, mappoint index in that keyframe]
+				map<cMultiKeyFrame*, std::vector<size_t>> observations = pMP->GetObservations(); 
 				for (map<cMultiKeyFrame*, std::vector<size_t>>::iterator it = observations.begin(),
 					itend = observations.end(); it != itend; it++)
 				{
@@ -1150,10 +1179,10 @@ bool cTracking::Relocalisation()
     // Relocalisation is performed when tracking is lost and forced at some stages during loop closing
     // Track Lost: Query KeyFrame Database for keyframe candidates for relocalisation
     vector<cMultiKeyFrame*> vpCandidateKFs;
-	if (!RelocalisationRequested())
+	if (!RelocalisationRequested()) 
         vpCandidateKFs = mpKeyFrameDB->DetectRelocalisationCandidates(&mCurrentFrame);
     else // Forced Relocalisation: Relocate against local window around last keyframe
-    {
+    {//force to relocalization 的情况，现阶段不会存在
 		std::unique_lock<std::mutex> lock(mMutexForceRelocalisation);
         mbForceRelocalisation = false;
         vpCandidateKFs.reserve(10);
@@ -1182,9 +1211,10 @@ bool cTracking::Relocalisation()
     vector<vector<cMapPoint*> > vvpMapPointMatches;
     vvpMapPointMatches.resize(nKFs);
 
-    vector<bool> vbDiscarded;
+    vector<bool> vbDiscarded;//是都放弃该keyframe
     vbDiscarded.resize(nKFs);
 
+	//对每一个共视候选帧进行筛选
     int nCandidates = 0;
 
 	for (size_t i = 0; i < vpCandidateKFs.size(); ++i)
@@ -1193,7 +1223,7 @@ bool cTracking::Relocalisation()
         if (pKF->isBad())
             vbDiscarded[i] = true;
         else
-        {
+        {//vvpMapPointMatches[i]：与mCurrentFrame的关键点一一对应，如果该关键点有对应地图点，则将该MapPoint存入，如果没有则为空
             int nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
             if (nmatches < 15)
             {
@@ -1213,7 +1243,7 @@ bool cTracking::Relocalisation()
 					cMapPoint* pMP = vvpMapPointMatches[i][j];
 
 					if (pMP)
-					{
+					{//对所有匹配到的地图点获取世界坐标点mvP3Dw 和 相机坐标下的坐标点mvP2D
 						if (!pMP->isBad())
 						{
 							const cv::Vec3d &kpRay = mCurrentFrame.mvKeysRays[j];
@@ -1252,9 +1282,9 @@ bool cTracking::Relocalisation()
 		bool bNoMore;
 
 		opengv::absolute_pose::NoncentralAbsoluteAdapter adapter(
-			matchedBearingVecs[i],
-			camCorrespondences[i],
-			points3D[i],
+			matchedBearingVecs[i],//相机坐标下的 地图点坐标
+			camCorrespondences[i], //地图点对应的cam id
+			points3D[i],//世界坐标下的 地图点坐标
 			camOffsets,
 			camRotations);
 #undef max
@@ -1299,6 +1329,7 @@ bool cTracking::Relocalisation()
 					vvpMapPointMatches[i][mvKeyPointIndices[i][inliers[j]]];
 				sFound.insert(vvpMapPointMatches[i][mvKeyPointIndices[i][inliers[j]]]);
 			}
+			//通过poseoptimization对姿态进行优化求解
 			double inliers = 0.0;
 			int nGood = cOptimizer::PoseOptimization(&mCurrentFrame, inliers);
 

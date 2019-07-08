@@ -115,7 +115,7 @@ namespace MultiColSLAM
 
 			for (int c = 0; c < nrCams; ++c)
 			{
-				ims[c] = mImages[c];
+				ims[c] = mImages[c];//在update中已经赋值为currentframe中的图像
 				if (ims[c].channels() < 3)
 					cvtColor(ims[c], ims[c], CV_GRAY2BGR);
 
@@ -140,8 +140,10 @@ namespace MultiColSLAM
 					const float r = 5;
 					for (unsigned int i = 0; i < vMatchedMapPoints.size(); ++i)
 					{
-						if (vMatchedMapPoints[i] || mvbOutliers[i])
+						if (vMatchedMapPoints[i] )
 						{
+							cv::Vec3d curWorldPose = vMatchedMapPoints[i]->GetWorldPos();
+
 							int camIdx = lkeyp_to_cam.find(i)->second;
 
 							cv::Point2f pt1, pt2;
@@ -154,6 +156,7 @@ namespace MultiColSLAM
 								cv::rectangle(ims[camIdx], pt1, pt2, cv::Scalar(255, 0, 0));
 								cv::circle(ims[camIdx], vCurrentKeys[i].pt, 2, cv::Scalar(0, 255, 0), -1);
 								++mnTracked;
+								cv::putText(ims[camIdx], std::to_string(curWorldPose[2]), pt1, cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(0, 255, 255), 1, 8);
 							}
 						}
 					}

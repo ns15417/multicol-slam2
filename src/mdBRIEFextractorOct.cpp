@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra˙l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* RaÈ∑è Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 
@@ -179,7 +179,7 @@ mdBRIEFextractorOct::mdBRIEFextractorOct(int _nfeatures,
 	mnFeaturesPerLevel[numlevels - 1] = std::max(nfeatures - sumFeatures, 0);
 
 	const int npoints = 2 * 8 * descSize;
-	const Point* pattern0 = (const Point*)learned_pattern_64_ORB;
+	const Point* pattern0 = (const Point*)bit_pattern_31_;
 	std::copy(pattern0, pattern0 + npoints, std::back_inserter(pattern));
 
 	//This is for orientation
@@ -909,15 +909,15 @@ void mdBRIEFextractorOct::ComputeKeyPointsOctTree(
 					maxX = maxBorderX;
 
 				vector<cv::KeyPoint> vKeysCell;
-				if (useAgast)
+				/*if (useAgast)
 					ag->detect(mvImagePyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX), 
 					vKeysCell, mvMaskPyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX));
 				else
 					fd->detect(mvImagePyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX),
-					vKeysCell, mvMaskPyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX));
+					vKeysCell, mvMaskPyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX));*/
 
-				//FAST(mvImagePyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX),
-				//	vKeysCell, fastThreshold, true);
+				FAST(mvImagePyramid[level].rowRange(iniY, maxY).colRange(iniX, maxX),
+					vKeysCell, fastThreshold, true);
 
 				//if (vKeysCell.empty())
 				//{
@@ -1258,7 +1258,7 @@ void mdBRIEFextractorOct::operator()(
 	// Pre-compute the scale pyramids
 	ComputePyramid(image, mask);
 
-	vector < vector<KeyPoint> > allKeypoints;
+	vector < vector<KeyPoint> > allKeypoints;  //store the keypoints for different pyramid level
 	ComputeKeyPointsOctTree(allKeypoints);
 	//ComputeKeyPointsOld(allKeypoints);
 
@@ -1285,7 +1285,7 @@ void mdBRIEFextractorOct::operator()(
 
 	int offset = 0;
 
-	const double scaleF = camModel.Get_P().at<double>(0);
+	const double scaleF = camModel.Get_P().at<double>(0); //get the distortion coefficient
 
 	for (int level = 0; level < numlevels; ++level)
 	{
@@ -1297,8 +1297,8 @@ void mdBRIEFextractorOct::operator()(
 
 		// preprocess the resized image
 		Mat& workingMat = mvImagePyramid[level];
-		//GaussianBlur(workingMat, workingMat, Size(7, 7), 2, 2, BORDER_REFLECT_101);
-		boxFilter(workingMat, workingMat, workingMat.depth(), Size(5, 5), Point(-1, -1), true, BORDER_REFLECT_101);
+		GaussianBlur(workingMat, workingMat, Size(7, 7), 2, 2, BORDER_REFLECT_101);
+		//boxFilter(workingMat, workingMat, workingMat.depth(), Size(5, 5), Point(-1, -1), true, BORDER_REFLECT_101);
 		
 		// undistort keypoint coordinates
 		std::vector<Vec2d> undistortedKeypoints = std::vector<Vec2d>(nkeypointsLevel);	

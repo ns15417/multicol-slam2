@@ -259,7 +259,8 @@ namespace MultiColSLAM
 
 			std::vector<cv::KeyPoint> vMatchedKeys1;
 			std::vector<cv::KeyPoint> vMatchedKeys2;
-
+			
+			//计算基本矩阵并根据极线约束限制匹配时的搜索范围 
 			std::vector<std::pair<size_t, size_t> > vMatchedIndices;
 			matcher.SearchForTriangulationRaw(mpCurrentMultiKeyFrame, pKF2,
 				vMatchedKeys1, vMatchedKeysRays1,
@@ -274,11 +275,11 @@ namespace MultiColSLAM
 
 				int camIdx1 = mpCurrentMultiKeyFrame->keypoint_to_cam.find(idx1)->second;
 				int camIdx2 = vpNeighKFs[i]->keypoint_to_cam.find(idx2)->second;
-
-				const cv::Vec3d &ray1 = vMatchedKeysRays1[ikp];
+				
+				const cv::Vec3d &ray1 = vMatchedKeysRays1[ikp];//normalized coordinate in camera system of keypoints
 				const cv::Vec3d &ray2 = vMatchedKeysRays2[ikp];
 
-				const cv::KeyPoint &kp1 = vMatchedKeys1[ikp];
+				const cv::KeyPoint &kp1 = vMatchedKeys1[ikp];//image coordinate of keypoints
 				const cv::KeyPoint &kp2 = vMatchedKeys2[ikp];
 				cv::Vec3d x3D(0.0, 0.0, 0.0);
 
@@ -298,7 +299,7 @@ namespace MultiColSLAM
 				cv::Vec3d rayRot2 = Rcw2 * ray2;
 
 				const double cosParallax = rayRot1.dot(rayRot2) /
-					(cv::norm(rayRot1) * cv::norm(rayRot2));
+					(cv::norm(rayRot1) * cv::norm(rayRot2)); //两个向量的夹角
 
 				if (cosParallax < 0 || cosParallax > cosThresh)
 					continue;
@@ -311,7 +312,7 @@ namespace MultiColSLAM
 				// now rotate the point to the world frame;
 				cv::Vec4d x3D4(x3D(0), x3D(1), x3D(2), 1.0);
 				x3D4 = Tcw1 * x3D4;
-				x3D = cv::Vec3d(x3D4(0), x3D4(1), x3D4(2));
+				x3D = cv::Vec3d(x3D4(0), x3D4(1), x3D4(2));//世界坐标系下的三维点坐标
 
 				// Check parallax between rays
 				// Check triangulation in front of cameras

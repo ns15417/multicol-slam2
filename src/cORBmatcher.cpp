@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include "cORBmatcher.h"
@@ -64,6 +64,9 @@ havingMasks(havingMasks_)
 	}
 }
 
+/*
+* @brief: 将vpMapPoints中地图点，分配给currentFrame中没有对应地图点的ORB特征
+*/
 int cORBmatcher::SearchByProjection(cMultiFrame &F,
 	const vector<cMapPoint*> &vpMapPoints, 
 	const double th)
@@ -117,7 +120,7 @@ int cORBmatcher::SearchByProjection(cMultiFrame &F,
 				vit != vend; vit++)
 			{
 				size_t idx = *vit;
-				// do we have a point assigned already?
+				// do we have a point assigned already? 如果当前特征已经有对应的地图点，则跳过
 				if (F.mvpMapPoints[idx])
 					continue;
 
@@ -156,7 +159,7 @@ int cORBmatcher::SearchByProjection(cMultiFrame &F,
 				if (bestLevel == bestLevel2 && bestDist > mfNNratio*bestDist2)
 					continue;
 
-				F.mvpMapPoints[bestIdx] = pMP;
+				F.mvpMapPoints[bestIdx] = pMP; // 在这里有一次添加了currentFrame中的mvpMapPoints的个数
 				++nmatches;
 			}
 		}
@@ -174,7 +177,20 @@ double cORBmatcher::RadiusByViewingCos(const double &viewCos)
         return 4.0;
 }
 
-
+/**
+* @brief 通过词包，对关键帧的特征点进行跟踪
+*
+* 通过bow对pKF和F中的特征点进行快速匹配（不属于同一node的特征点直接跳过匹配） \n
+* 对属于同一node的特征点通过描述子距离进行匹配 \n
+* 根据匹配，用pKF中特征点对应的MapPoint更新F中特征点对应的MapPoints \n
+* 每个特征点都对应一个MapPoint，因此pKF中每个特征点的MapPoint也就是F中对应点的MapPoint \n
+* 通过距离阈值、比例阈值和角度投票进行剔除误匹配
+* @param  pKF               KeyFrame
+* @param  F                 Current Frame
+* @param  vpMapPointMatches F中所有的特征点所匹配到的Mappoint，NULL表示未在地图点中找到与之对应的匹配
+* @return                   成功匹配的数量
+* @note： FeatureVector 中保存的是nodeid 和数与该node的所有特征的index
+*/
 
 int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF, 
 	cMultiFrame &F,
@@ -183,7 +199,7 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
     vector<cMapPoint*> vpMapPointsKF = pKF->GetMapPointMatches();
 
     vpMapPointMatches = vector<cMapPoint*>(F.mvpMapPoints.size(),static_cast<cMapPoint*>(NULL));
-
+	//
     DBoW2::FeatureVector vFeatVecKF = pKF->GetFeatureVector();
 
     int nmatches=0;
@@ -194,6 +210,7 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
     const float factor = 1.0f/HISTO_LENGTH;
 
     // We perform the matching over ORB that belong to the same vocabulary node (at a certain level)
+	// 将属于同一个节点(特定层)的ORB特征进行匹配（这里理解节点的意思是聚类之后的特征质心）
     DBoW2::FeatureVector::iterator KFit = vFeatVecKF.begin();
     DBoW2::FeatureVector::iterator Fit = F.mFeatVec.begin();
     DBoW2::FeatureVector::iterator KFend = vFeatVecKF.end();
@@ -201,17 +218,17 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
 
 	// over all cameras
 	while (KFit != KFend && Fit != Fend)
-	{
+	{//分别取出数与同一个node的ORB特征(只有属于同一个node，才有可能是匹配点)
 		if (KFit->first == Fit->first)
 		{
 			vector<unsigned int> vIndicesKF = KFit->second;
 			vector<unsigned int> vIndicesF = Fit->second;
-
+			//遍历KF中属于该node的特征点
 			for (size_t iKF = 0, iendKF = vIndicesKF.size(); iKF < iendKF; ++iKF)
 			{
-				const unsigned int realIdxKF = vIndicesKF[iKF];
+				const unsigned int realIdxKF = vIndicesKF[iKF];//该特征的index
 
-				cMapPoint* pMP = vpMapPointsKF[realIdxKF];
+				cMapPoint* pMP = vpMapPointsKF[realIdxKF];//该特征所对应的mappoint
 
 				if (!pMP)
 					continue;
@@ -220,7 +237,7 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
 					continue;
 				int descIdx1 = pKF->cont_idx_to_local_cam_idx.find(realIdxKF)->second;
 				int camIdx1 = pKF->keypoint_to_cam.find(realIdxKF)->second;
-				const uint64_t* dKF = pKF->GetDescriptorRowPtr(camIdx1, descIdx1);
+				const uint64_t* dKF = pKF->GetDescriptorRowPtr(camIdx1, descIdx1);//去除F中该特征对应的描述子
 				const uint64_t* dKF_mask = 0;
 				if (havingMasks)
 					dKF_mask = pKF->GetDescriptorMaskRowPtr(camIdx1, descIdx1);
@@ -229,16 +246,16 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
 				int bestDist1 = INT_MAX;
 				int bestIdxF = -1;
 				int bestDist2 = INT_MAX;
-
+				//遍历F中数与该node的特征点，找到最佳匹配点
 				for (size_t iF = 0, iendF = vIndicesF.size(); iF < iendF; ++iF)
 				{
-					const unsigned int realIdxF = vIndicesF[iF];
+					const unsigned int realIdxF = vIndicesF[iF];//realIdxF为特征点ID
 
 					if (vpMapPointMatches[realIdxF])
 						continue;
 					int descIdx2 = F.cont_idx_to_local_cam_idx.find(realIdxF)->second;
 					int camIdx2 = F.keypoint_to_cam.find(realIdxF)->second;
-					const uint64_t* dF = F.mDescriptors[camIdx2].ptr<uint64_t>(descIdx2);
+					const uint64_t* dF = F.mDescriptors[camIdx2].ptr<uint64_t>(descIdx2);//F中特征对应的描述子
 					int dist = 0;
 					if (havingMasks)
 					{
@@ -260,7 +277,7 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
 						bestDist2 = dist;
 					}
 				}
-
+				//根据阈值和角度，投票剔除误匹配
 				if (bestDist1 <= TH_LOW_)
 				{
 					if (static_cast<double>(bestDist1) < mfNNratio*static_cast<double>(bestDist2))
@@ -299,7 +316,7 @@ int cORBmatcher::SearchByBoW(cMultiKeyFrame* pKF,
 		}
 	}
 
-
+	//根据方向提出误匹配的点
 	if (mbCheckOrientation)
 	{
 		int ind1 = -1;
@@ -587,7 +604,7 @@ int cORBmatcher::SearchForInitialization(cMultiFrame &F1,
     int nmatches = 0;
     vnMatches12 = vector<int>(F1.mvKeys.size(),-1);
 
-    vector<int> rotHist[HISTO_LENGTH];
+    vector<int> rotHist[HISTO_LENGTH]; //用于存储旋转的角度值，将所有角度分成30份
 	for (int i = 0; i < HISTO_LENGTH; ++i)
         rotHist[i].reserve(500);
 
@@ -661,7 +678,7 @@ int cORBmatcher::SearchForInitialization(cMultiFrame &F1,
 
 		if (bestDist <= TH_LOW_)
         {
-			if (bestDist < (double)bestDist2*mfNNratio)
+			if (bestDist < (double)bestDist2*mfNNratio) //sn: bestDist is far better than bestDist2
             {
                 if (vnMatches21[bestIdx2] >= 0)
                 {

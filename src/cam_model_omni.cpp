@@ -90,6 +90,7 @@ namespace MultiColSLAM
 	void cCamModelGeneral_::WorldToImg(const cv::Point3_<double>& X,			// 3D scene point
 		cv::Point_<double>& m)			// 2D image point
 	{
+		// X:3D scene point  [uu,vv]: sensor plane m: image plane
 		double norm = sqrt(X.x*X.x + X.y*X.y);
 
 		if (norm == 0.0)

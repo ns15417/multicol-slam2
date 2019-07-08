@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra˙l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* RaÈ∑è Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include "cLoopClosing.h"
@@ -488,7 +488,7 @@ namespace MultiColSLAM
 
 			g2o::Sim3 g2oSiw = NonCorrectedSim3[pKFi];
 
-			std::vector<cMapPoint*> vpMPsi = pKFi->GetMapPointMatches();
+			std::vector<cMapPoint*> vpMPsi = pKFi->GetMapPointMatches();//get mvpMapPoints of current frame
 			for (size_t iMP = 0, endMPi = vpMPsi.size(); iMP < endMPi; ++iMP)
 			{
 				cMapPoint* pMPi = vpMPsi[iMP];
@@ -506,6 +506,8 @@ namespace MultiColSLAM
 
 				cv::Vec3d cvCorrectedP3Dw = cConverter::toCvVec3d(eigCorrectedP3Dw);
 				pMPi->SetWorldPos(cvCorrectedP3Dw);
+				std::cout << "Set World Pos for current mappoint : " << cvCorrectedP3Dw << std::endl;
+
 				pMPi->mnCorrectedByKF = mpCurrentKF->mnId;
 				pMPi->mnCorrectedReference = pKFi->mnId;
 				pMPi->UpdateNormalAndDepth();

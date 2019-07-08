@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include "cMapPoint.h"
@@ -332,7 +332,7 @@ namespace MultiColSLAM
 		if (vDescriptors.empty())
 			return;
 
-		// Compute distances between them
+		// Compute distances between them 计算能观察到该mappoint的所有observations中keypoint两两之间的距离
 		const size_t N = vDescriptors.size();
 
 		//float Distances[N][N];

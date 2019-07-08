@@ -765,7 +765,7 @@ namespace MultiColSLAM
 				cv::Vec4d x4Dw = cv::Vec4d(x3Dw(0), x3Dw(1), x3Dw(2), 1.0);
 
 				int camIdx = keypoint_to_cam.find(i)->second;
-				cv::Matx44d rot = camSystem.Get_MtMc_inv(camIdx);
+				cv::Matx44d rot = camSystem.Get_MtMc_inv(camIdx);//当前相机的rotation matrix
 				cv::Vec4d rotVec = rot*x4Dw;
 				double z = rotVec(2);
 				vDepths.push_back(z);

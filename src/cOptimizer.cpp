@@ -344,7 +344,7 @@ namespace MultiColSLAM
 		vnIndexEdge.reserve(N);
 		std::unordered_map<int, int> mapPt_2_obs_idx;
 		int pointIdx = 0;
-		int nInitialCorrespondences = 0;
+		int nInitialCorrespondences = 0;//sn:map points which are not NULL
 		for (int i = 0; i < N; ++i)
 		{
 			cMapPoint* pMP = pFrame->mvpMapPoints[i];
@@ -415,7 +415,7 @@ namespace MultiColSLAM
 
 			const size_t idx = vnIndexEdge[i];
 
-			if (e->chi2() > thHuber2)
+			if (e->chi2() > thHuber2)//sn:error is big enough then take it as an outliner which wont shown on the img
 			{
 				vpEdges[i] = NULL;
 				pFrame->mvbOutlier[idx] = true;

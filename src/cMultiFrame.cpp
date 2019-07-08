@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include "cMultiFrame.h"
@@ -134,6 +134,9 @@ namespace MultiColSLAM
 			mnMinY[c] = 0;
 			mnMaxY[c] = camModel.GetHeight();
 
+			//keyPtsTemp: keypoints om image
+			//keyRaysTemp:3d scene point in the camera coordinate
+
 			// First step feature extraction ORB in the mirror mask
 			(*mp_mdBRIEF_extractorOct[c])(images[c], camModel.GetMirrorMask(0),
 				keyPtsTemp[c], camModel, mDescriptors[c], mDescriptorMasks[c]);
@@ -150,7 +153,8 @@ namespace MultiColSLAM
 					static_cast<double>(keyPtsTemp[c][i].pt.y));
 				keyRaysTemp[c][i] = cv::Vec3d(x, y, z);
 			}
-
+			std::cout << "---------------- First Step: Feature Extraction for camera " <<c<<" ------------------ " << std::endl;
+			std::cout << "Get key points in first step: " << keyPtsTemp.size() << std::endl;
 			mfGridElementWidthInv[c] = static_cast<double>(FRAME_GRID_COLS) /
 				static_cast<double>(mnMaxX[c] - mnMinX[c]);
 			mfGridElementHeightInv[c] = static_cast<double>(FRAME_GRID_ROWS) /
@@ -213,6 +217,12 @@ namespace MultiColSLAM
 		cout << "---Feature Extraction (" << T_in_ms(begin, end) << "ms) - ImageId: " << mnId << "---" << endl;
 	}
 
+/*
+* @brief: 对LocalMap中的mappoint进行筛选
+*     1. 当前MapPoint到相机中心的距离dist
+*     2. 当前MapPoint在当前cam的重投影像素坐标
+*     3. 保存坐标mTrackProjX，mTrackProjY，viewing cos，scaleratio
+*/
 	bool cMultiFrame::isInFrustum(int cam, cMapPoint *pMP, double viewingCosLimit)
 	{
 		pMP->mbTrackInView[cam] = false;

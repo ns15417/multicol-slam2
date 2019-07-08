@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include "cViewer.h"
@@ -144,7 +144,7 @@ namespace MultiColSLAM
 			pangolin::FinishFrame();
 #endif
 			std::vector<cv::Mat> imgs;
-			mpFrameDrawer->DrawMultiFrame(imgs);
+			mpFrameDrawer->DrawMultiFrame(imgs);//将图像显示出来
 			for (int c = 0; c < drawNrCams; ++c)
 			{
 				cv::imshow("MultiCol-SLAM: Current Frame: " + to_string(c), imgs[c]);

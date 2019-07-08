@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #include "cMultiKeyFrameDatabase.h"
@@ -210,6 +210,17 @@ namespace MultiColSLAM
 		return vpLoopCandidates;
 	}
 
+/**
+* @brief 在重定位中找到与该帧相似的关键帧
+*
+* 1. 找出和当前帧具有公共单词的所有关键帧
+* 2. 只和具有共同单词较多的关键帧进行相似度计算
+* 3. 将与关键帧相连（权值最高）的前十个关键帧归为一组，计算累计得分
+* 4. 只返回累计得分较高的组中分数最高的关键帧
+* @param F 需要重定位的帧
+* @return  相似的关键帧
+* @see III-E Bags of Words Place Recognition
+*/
 	std::vector<cMultiKeyFrame*> cMultiKeyFrameDatabase::DetectRelocalisationCandidates(cMultiFrame *F)
 	{
 		std::list<cMultiKeyFrame*> lKFsSharingWords;
