@@ -169,7 +169,7 @@ namespace MultiColSLAM
 			return mnScaleLevels;
 		}
 
-		// Median MapPoint depth
+		// Median MapPoint depth获取所有场景点vpMapPoints在相机坐标系下的z坐标存放于vDepths中，按远近排序，然后取中间深度值
 		double ComputeSceneMedianDepth(int q = 2);
 
 		static long unsigned int nNextId;

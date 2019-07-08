@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Raé· Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #ifndef INITIALIZER_H
@@ -56,12 +56,12 @@ namespace MultiColSLAM
 
 		// Computes in parallel a fundamental matrix and a homography
 		// Selects a model and tries to recover the motion and the structure from motion
-		/* ÀûÓÃRANSAC ´ÓRefrence FramesºÍcurrent Frames ÖĞÌôÑ¡³ö×îÆ¥ÅäµÄÏà»ú£¬²¢Êä³öÆäÏà¹Ø²ÎÊı
-		* currentFrame£º µ±Ç°Ö¡
-		* vMatches12£º ÔÚImg2ÖĞµÄÆ¥ÅäµãµÄindex
-		* R21£¬t21 ÓÉransac¼ÆËã³öµÄÏà»úRT£¬ Ñ¡È¡Èı½ÇÖØ½¨×î¿¿Æ×µÄRTÊä³ö
-		* vP3D£º ´Ó×î¿¿Æ×µÄÏà»úÖĞ»Ö¸´³öµÄÈıÎ¬µã×ø±ê
-		* vbTriangulated£º 
+		/* åˆ©ç”¨RANSAC ä»Refrence Frameså’Œcurrent Frames ä¸­æŒ‘é€‰å‡ºæœ€åŒ¹é…çš„ç›¸æœºï¼Œå¹¶è¾“å‡ºå…¶ç›¸å…³å‚æ•°
+		* currentFrameï¼š å½“å‰å¸§
+		* vMatches12ï¼š åœ¨Img2ä¸­çš„åŒ¹é…ç‚¹çš„index
+		* R21ï¼Œt21 ç”±ransacè®¡ç®—å‡ºçš„ç›¸æœºRTï¼Œ é€‰å–ä¸‰è§’é‡å»ºæœ€é è°±çš„RTè¾“å‡º
+		* vP3Dï¼š ä»æœ€é è°±çš„ç›¸æœºä¸­æ¢å¤å‡ºçš„ä¸‰ç»´ç‚¹åæ ‡
+		* vbTriangulatedï¼š 
 		*/
 		bool Initialize(cMultiFrame &currentFrame,
 			const std::vector<int> &vMatches12,
@@ -83,15 +83,15 @@ namespace MultiColSLAM
 			minTriangulated);
 
 		/*SHINAN
-		*@param: currentFrame: µ±Ç°Ö¡
+		*@param: currentFrame: å½“å‰å¸§
 		*@param: R,t : Rotation and translation computed by RANSAC
 		*@param:  vKeys1, vKeys2  : keypoints on image
-		*vKeysRays1£¬vKeysRays2£º keypoints in normalized plane
-		*vMatches12: Á½ÕÅÍ¼ÏñÆ¥Åäµ½µÄµã[index_in_cam1, index_in_cam2]
-		*th2£º µ¥¸öµãÖØÍ¶Ó°Îó²îãĞÖµ
-		*vbGood£º Reference FrameÖĞ¸öµãµÄÆ¥ÅäÇé¿ö£¬Èç¹ûÈı½ÇÖØ½¨³öµÄÈıÎ¬µãÂú×ãÌõ¼ş£¬ÔòÆä¶ÔÓ¦µÄvbgoodÎªtrue
-		*vP3D£º Reference FrameÖĞµÄÌØÕ÷µãÖØ½¨ºóµÄÈıÎ¬×ø±ê
-		* ret: ºÃµÄÆ¥Åäµã
+		*vKeysRays1ï¼ŒvKeysRays2ï¼š keypoints in normalized plane
+		*vMatches12: ä¸¤å¼ å›¾åƒåŒ¹é…åˆ°çš„ç‚¹[index_in_cam1, index_in_cam2]
+		*th2ï¼š å•ä¸ªç‚¹é‡æŠ•å½±è¯¯å·®é˜ˆå€¼
+		*vbGoodï¼š Reference Frameä¸­ä¸ªç‚¹çš„åŒ¹é…æƒ…å†µï¼Œå¦‚æœä¸‰è§’é‡å»ºå‡ºçš„ä¸‰ç»´ç‚¹æ»¡è¶³æ¡ä»¶ï¼Œåˆ™å…¶å¯¹åº”çš„vbgoodä¸ºtrue
+		*vP3Dï¼š Reference Frameä¸­çš„ç‰¹å¾ç‚¹é‡å»ºåçš„ä¸‰ç»´åæ ‡
+		* ret: å¥½çš„åŒ¹é…ç‚¹
 		*/
 		int CheckRT(const cMultiFrame &currentFrame,
 			const cv::Matx33d &R,

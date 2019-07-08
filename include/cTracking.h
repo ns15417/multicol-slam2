@@ -192,10 +192,10 @@ namespace MultiColSLAM
 
 		//Local Map
 		cMultiKeyFrame* mpReferenceKF;
-		std::vector<cMultiKeyFrame*> mvpLocalKeyFrames;
-		std::vector<int> mvpLocalKeyFramesCovWeights;
-		std::vector<double> mvpLocalKeyFramesDistance2Frame;
-		std::vector<cMapPoint*> mvpLocalMapPoints;
+		std::vector<cMultiKeyFrame*> mvpLocalKeyFrames; //用于存放所有与currentFrame有共视mappoint的关键帧
+		std::vector<int> mvpLocalKeyFramesCovWeights; //mvpLocalKeyFrames中关键帧的权重，即共视的地图点的个数
+		std::vector<double> mvpLocalKeyFramesDistance2Frame;//mvpLocalKeyFrames中关键帧与currentFrame之间的距离
+		std::vector<cMapPoint*> mvpLocalMapPoints;//mvpLocalKeyFrames中包含的有效地图点
 
 		//Publishers
 		cMultiFramePublisher* mpFramePublisher;

@@ -58,10 +58,10 @@ namespace MultiColSLAM
 			M_t(cv::Matx44d::eye()), M_t_min(cv::Matx61d::zeros()){}
 
 		/* constructor initalizes MCS pose and MCS calibration
-		* ¸Ãº¯ÊıÓÃÓÚ¼ÆËãºóÃæ¿ÉÄÜÓÃµ½µÄÔÚ²»Í¬ĞÎÌ¬µÄĞı×ª¾ØÕóRºÍÆ½ÒÆ¾ØÕóT
-		* M_c_ ´ÓÊäÈëµÄÏà»úÎ»×ËÎÄ¼şÖĞÖ±½Ó»ñÈ¡£¬cayley2homÎª4x4¾ØÕó
-		* M_t_ MCSµÄbody frame×ø±ê£¬µ±Ç°º¯ÊıÊ¹ÓÃµÄÎª4x4µÄµ¥Î»Õó
-		* ÒÑ¾­³õÊ¼»¯ºÃµÄÃ¿¸öÏà»úµÄÄÚ²Î*/
+		* è¯¥å‡½æ•°ç”¨äºè®¡ç®—åé¢å¯èƒ½ç”¨åˆ°çš„åœ¨ä¸åŒå½¢æ€çš„æ—‹è½¬çŸ©é˜µRå’Œå¹³ç§»çŸ©é˜µT
+		* M_c_ ä»è¾“å…¥çš„ç›¸æœºä½å§¿æ–‡ä»¶ä¸­ç›´æ¥è·å–ï¼Œcayley2homä¸º4x4çŸ©é˜µ
+		* M_t_ MCSçš„body frameåæ ‡ï¼Œå½“å‰å‡½æ•°ä½¿ç”¨çš„ä¸º4x4çš„å•ä½é˜µ
+		* å·²ç»åˆå§‹åŒ–å¥½çš„æ¯ä¸ªç›¸æœºçš„å†…å‚*/
 		cMultiCamSys_(cv::Matx<double, 4, 4> M_t_,
 			std::vector<cv::Matx<double, 4, 4>> M_c_,
 			std::vector<cCamModelGeneral_> camModels_) :
@@ -83,7 +83,7 @@ namespace MultiColSLAM
 				// opengv conversion
 				opengv::rotation_t R;
 				opengv::translation_t t;
-				cv::Mat Rcv(M_c[c].get_minor<3, 3>(0, 0)); //»ñµÃ±ä»»¾ØÕó4x4µÄÇ°ÈıÎ¬Ğı×ª¾ØÕóR
+				cv::Mat Rcv(M_c[c].get_minor<3, 3>(0, 0)); //è·å¾—å˜æ¢çŸ©é˜µ4x4çš„å‰ä¸‰ç»´æ—‹è½¬çŸ©é˜µR
 				std::cout << "Got the Rotation Mat in cv format: " << Rcv << std::endl;
 				cv::cv2eigen(Rcv, R);
 				cv::Mat_<double> tcv =
@@ -192,8 +192,8 @@ namespace MultiColSLAM
 		std::vector<cv::Matx<double, 4, 4>> M_c;		// MCS calibration data
 		std::vector<cv::Matx<double, 6, 1>> M_c_min;    // MCS calibration data as cayley rep
 		// for opengv
-		opengv::rotations_t camRotations; //µ±Ç°Ïà»úÄ£ĞÍeigenÄ£Ê½ÏÂĞı×ªÏòÁ¿
-		opengv::translations_t camOffsets;  //µ±Ç°Ïà»úÄ£ĞÍµÄÆ½ÒÆ
+		opengv::rotations_t camRotations; //å½“å‰ç›¸æœºæ¨¡å‹eigenæ¨¡å¼ä¸‹æ—‹è½¬å‘é‡
+		opengv::translations_t camOffsets;  //å½“å‰ç›¸æœºæ¨¡å‹çš„å¹³ç§»
 
 		std::vector<cCamModelGeneral_> camModels; // specific camera model
 

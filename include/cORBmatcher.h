@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #ifndef ORBMATCHER_H
@@ -56,7 +56,7 @@ namespace MultiColSLAM
 	public:
 		/* SHINAN:
 		* nnratio: ratio of the best and the second score
-		* featDim�� feature dimension, past throught setting doc extractor.descSize, DEFAULT=32
+		* featDim： feature dimension, past throught setting doc extractor.descSize, DEFAULT=32
 		* havingMasks_: add mask for fisheye lense
 		*/
 
@@ -70,6 +70,11 @@ namespace MultiColSLAM
 
 		// Search matches between Frame keypoints and projected MapPoints. Returns number of matches
 		// Used to track the local map (Tracking)
+		/* 首先对LocalMapPoints中的点进行访问，看其能否在当前currentFrame中被观测到
+		*  如果可以观测到，再调用当前SearchByProjection() 函数，用于将这些MapPoints进行重投影，
+		*  再重投影位置周围进行匹配，若匹配上，则match++
+		*  return： 能成功匹配到的点的个数
+		*/
 		int SearchByProjection(cMultiFrame &F,
 			const std::vector<cMapPoint*> &vpMapPoints,
 			const double th = 3);
@@ -116,9 +121,9 @@ namespace MultiColSLAM
 		/*SHINAN:
 		* F1: reference frame
 		* F2: current frame
-		* vbPrevMatched: ���ڱ��浱ǰ��֡ͼ��match���ĵ������
-		* vnMatches12�� ���ڱ��浱ǰ��֡ͼ�¸�match���ĵ��index,���match��������total keypoint�е�index�����û��match������-1
-		* windowSize�� ����ƥ���ʱ�Ĵ��ڴ�С	
+		* vbPrevMatched: 用于保存当前两帧图像match到的点的坐标
+		* vnMatches12： 参考图中的点idx1在当前帧图像中的最佳匹配点index，如果没有match到（也就是bestDist不符合阈值范围）就是-1
+		* windowSize： 查找匹配点时的窗口大小	
 		*/
 		int SearchForInitialization(cMultiFrame &F1, cMultiFrame &F2,
 			std::vector<cv::Vec2d> &vbPrevMatched,

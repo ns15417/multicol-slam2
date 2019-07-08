@@ -104,7 +104,7 @@ namespace MultiColSLAM
 	}
 
 	/**
-	* evaluate a polynom using Horner ¹¹½¨f(¦Ñ)=a0+a1*¦Ñ+a2*¦Ñ*p+a3*¦Ñ*¦Ñ*¦Ñ+a4*¦Ñ*¦Ñ*¦Ñ*¦Ñ
+	* evaluate a polynom using Horner å‡³è†˜f(è€)=a0+a1*è€+a2*è€*p+a3*è€*è€*è€+a4*è€*è€*è€*è€
 	*
 	* @param coeffs  T* of coefficients
 	* @param s		 number of polynomial coefficients

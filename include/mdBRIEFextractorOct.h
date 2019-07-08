@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Raé· Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #ifndef MDBRIEFEXTRACTOROCT_H
@@ -351,7 +351,10 @@ namespace MultiColSLAM
 			int _descSize = 32);
 
 		~mdBRIEFextractorOct(){}
-
+		/*
+		* @brief : compute ORB keypoints for _image, and stored in _keypoints;
+		*          if 
+		*/
 		void operator()(
 			cv::InputArray _image,
 			cv::InputArray _mask,
@@ -369,8 +372,8 @@ namespace MultiColSLAM
 
 	protected:
 		void ComputePyramid(cv::Mat image, cv::Mat Mask = cv::Mat());
-		//¶ÔÓ°Ïì½ğ×ÖËşÖĞÃ¿Ò»²ãÍ¼Ïñ½øĞĞÌØÕ÷µã¼ÆËã¡£¾ßÌåµÄ¶ø¼ÆËã¹ı³ÌÊÇ½«Ó°Ïì·Ö¸î³ÉĞ¡ÇøÓò£¬
-		//Ã¿¸öĞ¡ÇøÓò¶ÀÁ¢Ê¹ÓÃFAST½Çµã¼ì²â£¬¼ì²âÍê³ÉºóÊ¹ÓÃDistributeOctTree()º¯Êı¶Ô¼ì²âµÃµ½µÄËùÓĞ½Çµã½øĞĞÉ¸Ñ¡£¬Ê¹µÃ½Çµã¾ùÔÈ·Ö²¼
+		//å¯¹å½±å“é‡‘å­—å¡”ä¸­æ¯ä¸€å±‚å›¾åƒè¿›è¡Œç‰¹å¾ç‚¹è®¡ç®—ã€‚å…·ä½“çš„è€Œè®¡ç®—è¿‡ç¨‹æ˜¯å°†å½±å“åˆ†å‰²æˆå°åŒºåŸŸï¼Œ
+		//æ¯ä¸ªå°åŒºåŸŸç‹¬ç«‹ä½¿ç”¨FASTè§’ç‚¹æ£€æµ‹ï¼Œæ£€æµ‹å®Œæˆåä½¿ç”¨DistributeOctTree()å‡½æ•°å¯¹æ£€æµ‹å¾—åˆ°çš„æ‰€æœ‰è§’ç‚¹è¿›è¡Œç­›é€‰ï¼Œä½¿å¾—è§’ç‚¹å‡åŒ€åˆ†å¸ƒ
 		void ComputeKeyPointsOctTree(
 			std::vector<std::vector<cv::KeyPoint> >& allKeypoints);
 

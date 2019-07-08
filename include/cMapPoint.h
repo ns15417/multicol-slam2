@@ -21,7 +21,7 @@
 /*
 * MultiCol-SLAM is based on ORB-SLAM2 which was also released under GPLv3
 * For more information see <https://github.com/raulmur/ORB_SLAM2>
-* Ra�l Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
 */
 
 #ifndef MAPPOINT_H
@@ -121,9 +121,10 @@ namespace MultiColSLAM
 		cv::Vec3d mWorldPos;
 		cv::Vec3d mModelPos;
 		// Keyframes observing the point and associated indeces in keyframe
+		//保存 能观测到当前MapPoint的关键帧，以及该MapPoint在此帧中的index， size等于mappoint的总数
 		std::map<cMultiKeyFrame*, std::vector<size_t>> mObservations;
 
-		// Mean viewing direction
+		// Mean viewing direction(经过了归一化之后的距离向量，这里表示方向，从当前camera的中心出发
 		cv::Vec3d mNormalVector;
 		// Best descriptor to fast matching
 		cv::Mat mDescriptor;

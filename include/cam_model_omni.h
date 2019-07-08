@@ -233,10 +233,10 @@ namespace MultiColSLAM
 		double v0;
 		// polynomial
 		double p1;
-		cv::Mat_<double> p;  //畸变系数
+		cv::Mat_<double> p;  //鐣稿彉绯绘暟
 		int p_deg;   //degree of polynomials
 		// inverse polynomial
-		cv::Mat_<double> invP; // ρ和角度θ之间的关系
+		cv::Mat_<double> invP; // 蟻鍜岃搴ξ镐箣闂寸殑鍏崇郴
 
 		int invP_deg; //degree of invP
 		// image width and height
