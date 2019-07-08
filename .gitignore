@@ -14,6 +14,8 @@ Examples/**/*.pdb
 Examples/**/*.txt
 Examples/**/*.dat
 Examples/**/*.launch
+Examples/**/*.jpg
+Examples/**/*.png
 result*.txt
 Examples/BoxNO2/*.yaml
 Examples/ReCalilbration
