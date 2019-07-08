@@ -1,201 +1,266 @@
-// The original version was released under the following license
-/**
-* Copyright (C) 2014-2016 Ra鷏 Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
+#include <opencv2/opencv.hpp>
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+#include "misc.h"
 
-// All modifications are released under the following license
-/**
-* This file is part of MultiCol-SLAM
-*
-* Copyright (C) 2015-2016 Steffen Urban <rurbste at googlemail.com>
-* For more information see <https://github.com/urbste/MultiCol-SLAM>
-*
-* MultiCol-SLAM is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* MultiCol-SLAM is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with MultiCol-SLAM . If not, see <http://www.gnu.org/licenses/>.
-*/
+int CalibrationResultTest();
+int ResultTransform();
+int SaveCameraIntrinsic(const Eigen::VectorXd new_distort_coeff,
+	const Eigen::VectorXd new_inverse_polynomial,
+	const Eigen::Matrix3d camera_matrix,
+	const int Iw, const int Ih, const std::string &filename);
+void util_transfer();
+int WriteCameraIntrinsic(const Eigen::VectorXd new_distort_coeff,
+	const Eigen::VectorXd new_inverse_polynomial,
+	const Eigen::Matrix3d camera_matrix,
+	const int Iw, const int Ih);
 
-#include <iostream>
-#include <fstream> 
-#include <iomanip>
-#include <thread>
-#include <mutex>
-
-#include <opencv2/core/core.hpp>
-
-#include "cTracking.h"
-#include "cConverter.h"
-#include "cam_model_omni.h"
-#include "cSystem.h"
-
-using namespace std;
-
-void LoadImagesAndTimestamps(
-	const int startFrame,
-	const int endFrame,
-	const string path2imgs,
-	vector<vector<string>> &vstrImageFilenames,
-	vector<double> &vTimestamps);
-
-int main(int argc, char **argv)
+int main(int argc,char** argv)
 {
-	if (argc != 5)
+	std::cout << "argc: " << argc << std::endl;
+	if (argc == 1)
 	{
-		cerr << endl << "Usage: ./MultiCol_Slam_Lafida vocabulary_file slam_settings_file path_to_settings path_to_img_sequence" << endl;
-		return 1;
+		std::cout << "Attempting to execute Calibration result test!!" << std::endl;
+		CalibrationResultTest();
+		util_transfer();
+		ResultTransform();
+	}
+	else if (argc != 3)
+	{
+		std::cerr << "Usage: calibration_test.exe path_of_mcptam_file path_of_MultiCol_Slam_file " << std::endl;
+	}
+	//std::string mcptam_path = std::string(argv[1]);
+	//std::string multicol_path = std::string(argv[2]);
+	//ResultTransform(mcptam_path, multicol_path);
+}
+
+
+/*
+*  @brief:This function is used to test Rotation Matrix in pose.data
+*  RotationMatrix: Rotation Matrix in Fil pose.data
+*/
+int CalibrationResultTest()
+{
+	Eigen::Matrix3d RotationMatrix1, RotationMatrix2;
+	RotationMatrix1 << -0.606798, 0.200102, 0.769256,
+		              - 0.155266 ,0.91931 ,- 0.36161, 
+		              - 0.779544, - 0.338864, - 0.526766;
+
+	RotationMatrix2 << -0.160924, - 0.210418, - 0.964276, 
+		0.20669, 0.94816, - 0.241395, 
+		0.965082, - 0.238153, - 0.109091;
+
+	Eigen::Vector3d euler_angles1 = RotationMatrix1.eulerAngles(2, 1, 0);
+	Eigen::Vector3d euler_angles2 = RotationMatrix2.eulerAngles(2, 1, 0);
+
+	std::cout << "for RotationMatrix1 : " << std::endl <<" yaw(Z) pitch(Y) roll(X) = \n" << euler_angles1.transpose() << std::endl;
+	std::cout << "actural rotation around Z : " << euler_angles1[0] / M_PI * 180 << std::endl
+		      << "actural rotation around Y : " << euler_angles1[1] / M_PI * 180 << std::endl
+		      << "actural rotation around X : " << euler_angles1[2] / M_PI * 180 << std::endl;
+	
+    std::cout << "for RotationMatrix2 : " << std::endl << "yaw(Z) pitch(Y) roll(X)=\n" << euler_angles2.transpose() << std::endl;
+	std::cout << "actural rotation around Z : " << euler_angles2[0] / M_PI * 180 << std::endl
+		<< "actural rotation around Y : " << euler_angles2[1] / M_PI * 180 << std::endl
+		<< "actural rotation around X : " << euler_angles2[2] / M_PI * 180 << std::endl;
+	
+	return 0;
+}
+
+void util_transfer()
+{
+	// --------------------------HERE I AM TRYING TO TRANSFORM MY RT to Caylay--------------------------------
+	cv::Matx<double, 4, 4> C1(1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
+	cv::Matx <double, 6, 1> new_C1 = MultiColSLAM::hom2cayley(C1);
+	std::cout << "new_C1" << std::endl << new_C1 << std::endl;
+
+	cv::Matx<double, 4, 4> C2(-0.556082, 0.0123927, 0.831035, 0.0619053,
+		0.0116095, 0.999907, - 0.00714255, 0.00242012,
+		- 0.831046, 0.00567604, - 0.556174, - 0.107676,
+		0, 0, 0, 1);
+
+	cv::Matx <double, 6, 1> new_C2 = MultiColSLAM::hom2cayley(C2);
+	std::cout << "new_C2hahahah" << std::endl << new_C2 << std::endl;
+
+	cv::Matx<double, 4, 4> C3(-0.503322, - 0.00728889, - 0.864068, - 0.0670418,
+		- 0.0234716, 0.999711, 0.00523913, 0.00348552,
+		0.86378 ,0.022918, - 0.503347, - 0.11071,
+		0, 0, 0, 1);
+	cv::Matx <double, 6, 1> new_C3 = MultiColSLAM::hom2cayley(C3);
+	std::cout << "new_C3hahahah" << std::endl << new_C3 << std::endl;
+
+
+}
+
+
+int ReadFromFile(Eigen::Vector4d &distort_coeff, Eigen::Matrix3d &camera_matrix, std::string mcptamfilepath)
+{
+	cv::FileStorage InstrinsicReading(mcptamfilepath, cv::FileStorage::READ);
+	if (!InstrinsicReading.isOpened())
+	{
+		std::cout << "Failed to open " << mcptamfilepath << std::endl;
+		return 0;
 	}
 
-	string path2voc = string(argv[1]);
-	string path2settings = string(argv[2]);
-	string path2calibrations = string(argv[3]);
-	string path2imgs = string(argv[4]);
+	std::string tmp_distort = InstrinsicReading["distortion_coefficients"]["data"];
+	std::cout << "distort_coeff: " << tmp_distort << std::endl;
+	distort_coeff[0] = (double)tmp_distort[0];
+	distort_coeff[1] = (double)tmp_distort[1];
+	distort_coeff[2] = (double)tmp_distort[2];
+	distort_coeff[3] = (double)tmp_distort[3];
 
-	cout << endl << "MultiCol-SLAM Copyright (C) 2016 Steffen Urban" << endl << endl;
-	// --------------
-	// 1. Tracking settings
-	// --------------
-	cv::FileStorage frameSettings(path2settings, cv::FileStorage::READ);
 
-	int traj = (int)frameSettings["traj2Eval"];
-	string trajs = to_string(traj);
-	const int endFrame = (int)frameSettings["traj.EndFrame"];
-	const int startFrame = (int)frameSettings["traj.StartFrame"];
+	std::string tmp_instrinsic = InstrinsicReading["camera_matrix"]["data"];
+	camera_matrix(0, 0) = (double)tmp_instrinsic[0];
+	camera_matrix(0, 1) = (double)tmp_instrinsic[1];
+	camera_matrix(0, 2) = (double)tmp_instrinsic[2];
+	camera_matrix(1, 0) = (double)tmp_instrinsic[3];
+	camera_matrix(1, 1) = (double)tmp_instrinsic[4];
+	camera_matrix(1, 2) = (double)tmp_instrinsic[5];
+	camera_matrix(2, 0) = (double)tmp_instrinsic[6];
+	camera_matrix(2, 1) = (double)tmp_instrinsic[7];
+	camera_matrix(2, 2) = (double)tmp_instrinsic[8];
+}
+/*
+*  @brief:This function is to transform the intrinsic Matrix got from MCPTAM 
+           to format asked by MultiCol-SLAM
+*  RotationMatrix: Rotation Matrix in Fil pose.data
+*/
+int ResultTransform()
+{
+	std::cout << "Transforming" << std::endl;
+	int img_width, img_height;
+	img_width = 640;
+	img_height = 480;
 
-	// --------------
-	// 4. Load image paths and timestamps
-	// --------------
-	vector<vector<string>> imgFilenames;
-	vector<double> timestamps;
-	/////////////////////////
-	LoadImagesAndTimestamps(startFrame, endFrame, path2imgs, imgFilenames, timestamps);
+	// 需要根据每个相机进行修改
+	Eigen::Vector4d distort_coeff;
+	Eigen::Matrix3d camera_matrix;
+	distort_coeff << 319.543314011052, -0.0015144390163834, 1.64012124087578e-06, -6.29922060212327e-09;
+	camera_matrix << 0.997103876401539, 0.000824430307240755, 671.277625446551, -0.000650217723157717, 1, 350.761338052098, 0, 0, 0;
+	//记得修改维数11
+	cv::Matx<double, 1, 11> inverse_polynomial;
+	cv::Matx<double, 1, 11> new_inverse_polynomial;
+	inverse_polynomial<<274.09, - 126.007 ,- 6.80859 ,- 27.5604 ,3.31105 ,- 4.754, 6.00577, 2.66313, - 0.47732,- 2.54251, 0.934194,0.0;
 
-	int nImages = imgFilenames[0].size();
+	std::cout << "Camera.Iw: " << img_width << std::endl;
+	std::cout << "Camera.Ih: " << img_height << std::endl;
 
-	MultiColSLAM::cSystem MultiSLAM(path2voc, path2settings, path2calibrations, true);
+	/*Eigen::VectorXd new_distort_coeff(5);
+	new_distort_coeff(0, 0) = -distort_coeff[0];
+	new_distort_coeff(0, 1) = (double)0.0;
+	new_distort_coeff(0, 2) = -distort_coeff[1];
+	new_distort_coeff(0, 3) = -distort_coeff[2];
+	new_distort_coeff(0, 4) = -distort_coeff[3];*/
+	cv::Matx<double,1,5 > new_distort_coeff;
+	new_distort_coeff(0, 0) = -distort_coeff[0];
+	new_distort_coeff(0, 1) = (double)0.0;
+	new_distort_coeff(0, 2) = -distort_coeff[1];
+	new_distort_coeff(0, 3) = -distort_coeff[2];
+	new_distort_coeff(0, 4) = -distort_coeff[3];
 
-	// Vector for tracking time statistics
-	vector<float> vTimesTrack;
-	vTimesTrack.resize(nImages);
 
-	cout << endl << "-------" << endl;
-	cout << "Start processing sequence ..." << endl;
-	cout << "Images in the sequence: " << nImages << endl << endl;
-
-	// Main loop
-	const int nrCams = static_cast<int>(imgFilenames.size());
-	std::vector<cv::Mat> imgs(nrCams);
-	for (int ni = 0; ni < nImages; ni++)
+	for (int i = 0; i < inverse_polynomial.cols; i++)
 	{
-		// Read image from file
-		std::vector<bool> loaded(nrCams);
-		for (int c = 0; c < nrCams; ++c)
-		{
-			std::cout << "loading image :" << imgFilenames[c][ni] << std::endl;
-			imgs[c] = cv::imread(imgFilenames[c][ni], CV_LOAD_IMAGE_GRAYSCALE);
-			if (imgs[c].empty())
-			{
-				cerr << endl << "Failed to load image at: " << imgFilenames[c][ni] << endl;
-				return 1;
-			}
-		}
-		double tframe = timestamps[ni];
-		std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-		// Pass the image to the SLAM system
-		MultiSLAM.TrackMultiColSLAM(imgs, tframe);
+		if(i%2 == 1)
+			new_inverse_polynomial(0,i) = -inverse_polynomial(i);
+		else
+			new_inverse_polynomial(0,i) = inverse_polynomial(i);
+	}
+	
 
-		std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+	std::cout << "Camera.nrpol: " << int(5) << std::endl;
+	std::cout << "Camera.nrinvpol: " << int(new_inverse_polynomial.cols) << std::endl;
 
-		double ttrack = std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
+	std::cout << "Camera.a0: " << new_distort_coeff(0, 0) << std::endl;
+	std::cout << "Camera.a1: " << new_distort_coeff(0, 1) << std::endl;
+	std::cout << "Camera.a2: " << new_distort_coeff(0, 2) << std::endl;
+	std::cout << "Camera.a3: " << new_distort_coeff(0, 3) << std::endl;
+	std::cout << "Camera.a4: " << new_distort_coeff(0, 4) << std::endl;
 
-		vTimesTrack[ni] = ttrack;
-
-		// Wait to load the next frame
-		double T = 0;
-		if (ni < nImages - 1)
-			T = timestamps[ni + 1] - tframe;
-		else if (ni > 0)
-			T = tframe - timestamps[ni - 1];
-		//std::this_thread::sleep_for(std::chrono::milliseconds(30));
-
-		if (ttrack < T)
-			std::this_thread::sleep_for(std::chrono::milliseconds(
-			static_cast<long>((T - ttrack))));
+	for (int i = 0; i < new_inverse_polynomial.cols; i++)
+	{
+		std::string tmpstr = "Camera.pol" + std::to_string(i)+": ";
+		std::cout << tmpstr << new_inverse_polynomial(0,i) << std::endl;
 	}
 
-	// Stop all threads
-	MultiSLAM.Shutdown();
+	std::cout << "Camera.c: " << camera_matrix(0, 0) << std::endl;
+	std::cout << "Camera.d: " << camera_matrix(0, 1) << std::endl;
+	std::cout << "Camera.e: " << camera_matrix(1, 0) << std::endl;
 
-	// Tracking time statistics
-	sort(vTimesTrack.begin(), vTimesTrack.end());
-	float totaltime = 0;
-	for (int ni = 0; ni<nImages; ni++)
+	std::cout << "Camera.u0: " << camera_matrix(0, 2) << std::endl;
+	std::cout << "Camera.v0: " << camera_matrix(1, 2) << std::endl;
+	//WriteCameraIntrinsic(new_distort_coeff,new_inverse_polynomial,camera_matrix,img_width,img_height);
+	return 0;
+}
+
+int WriteCameraIntrinsic(const Eigen::VectorXd new_distort_coeff,
+	const Eigen::VectorXd new_inverse_polynomial,
+	const Eigen::Matrix3d camera_matrix,
+	const int Iw, const int Ih)
+{
+	
+	std::cout << "Camera.Iw:" << Iw << std::endl;
+	std::cout << "Camera.Ih" << Ih << std::endl;
+
+	std::cout << "Camera.nrpol" << int(5) << std::endl;
+	std::cout << "Camera.nrinvpol" << int(new_inverse_polynomial.cols()) << std::endl;
+
+	std::cout << "Camera.a0" << new_distort_coeff[0] << std::endl;
+	std::cout << "Camera.a1" << new_distort_coeff[1] << std::endl;
+	std::cout << "Camera.a2" << new_distort_coeff[2] << std::endl;
+	std::cout << "Camera.a3" << new_distort_coeff[3] << std::endl;
+	std::cout << "Camera.a4" << new_distort_coeff[4] << std::endl;
+
+	for (int i = 0; i < new_inverse_polynomial.cols(); i++)
 	{
-		totaltime += vTimesTrack[ni];
+		std::string tmpstr = "Camera.pol" + std::to_string(i);
+		std::cout << tmpstr << new_inverse_polynomial[i] << std::endl;
 	}
-	cout << "-------" << endl << endl;
-	cout << "median tracking time: " << vTimesTrack[nImages / 2] << endl;
-	cout << "mean tracking time: " << totaltime / nImages << endl;
 
-	// Save camera trajectory
-	MultiSLAM.SaveMKFTrajectoryLAFIDA("MKFTrajectory.txt");
+	std::cout << "Camera.c" << camera_matrix(0, 0) << std::endl;
+	std::cout << "Camera.d" << camera_matrix(0, 1) << std::endl;
+	std::cout << "Camera.e" << camera_matrix(1, 0) << std::endl;
+
+	std::cout << "Camera.u0:" << camera_matrix(0, 2) << std::endl;
+	std::cout << "Camera.v0:" << camera_matrix(1, 2) << std::endl;
 
 	return 0;
 }
 
 
-void LoadImagesAndTimestamps(const int startFrame,
-	const int endFrame,
-	const string path2imgs,
-	vector<vector<string>> &vstrImageFilenames,
-	vector<double> &vTimestamps)
+int SaveCameraIntrinsic(const Eigen::VectorXd new_distort_coeff,
+	const Eigen::VectorXd new_inverse_polynomial,
+	const Eigen::Matrix3d camera_matrix,
+	const int Iw, const int Ih, const std::string &filename)
 {
-	vstrImageFilenames.resize(3);
-	ifstream fTimes;
-	string strPathTimeFile = path2imgs + "/images_and_timestamps.txt";
+	cv::FileStorage new_cam_intrinsic(filename,cv::FileStorage::WRITE);
+	new_cam_intrinsic << "Camera.Iw" << Iw;
+	new_cam_intrinsic << "Camera.Ih" << Ih;
+	
+	new_cam_intrinsic << "Camera.nrpol" << int(5);
+	new_cam_intrinsic << "Camera.nrinvpol" << int(new_inverse_polynomial.cols());
 
-	fTimes.open(strPathTimeFile.c_str());
-	string line;
+	new_cam_intrinsic << "Camera.a0" << new_distort_coeff[0];
+	new_cam_intrinsic << "Camera.a1" << new_distort_coeff[1];
+	new_cam_intrinsic << "Camera.a2" << new_distort_coeff[2];
+	new_cam_intrinsic << "Camera.a3" << new_distort_coeff[3];
+	new_cam_intrinsic << "Camera.a4" << new_distort_coeff[4];
 
-
-	int cnt = 1;
-	while (std::getline(fTimes, line))
+	for (int i = 0; i < new_inverse_polynomial.cols(); i++)
 	{
-		if (cnt >= startFrame && cnt < endFrame) // skip until startframe
-		{
-			std::istringstream iss(line);
-			double timestamp;
-			string pathimg1, pathimg2, pathimg3;
-			if (!(iss >> timestamp >> pathimg1 >> pathimg2 >> pathimg3))
-				break;
-			vTimestamps.push_back(timestamp);
-			vstrImageFilenames[0].push_back(path2imgs + '/' + pathimg1);
-			vstrImageFilenames[1].push_back(path2imgs + '/' + pathimg2);
-			vstrImageFilenames[2].push_back(path2imgs + '/' + pathimg3);
-		}
-		++cnt;
-
+		std::string tmpstr = "Camera.pol" + std::to_string(i);
+		new_cam_intrinsic << tmpstr << new_inverse_polynomial[i];
 	}
+
+	new_cam_intrinsic << "Camera.c" << camera_matrix(0, 0);
+	new_cam_intrinsic << "Camera.d" << camera_matrix(0, 1);
+	new_cam_intrinsic << "Camera.e" << camera_matrix(1, 0);
+
+	new_cam_intrinsic << "Camera.u0" << camera_matrix(0, 2);
+	new_cam_intrinsic << "Camera.v0" << camera_matrix(1, 2);
+
+	return 0;
 }
